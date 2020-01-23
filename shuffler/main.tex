@@ -1,0 +1,150 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% Informal notes on k-randomization.
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass[11pt]{article}
+%\documentclass[11pt,draft]{amsart}
+
+% Custom styling.
+\usepackage{custom}
+%% Controls enumeration labels
+%\usepackage{enumerate}
+%% Shrinks margins 
+\usepackage{fullpage}
+%% Shows equation label keys
+%\usepackage[notref]{showkeys}
+%% Title matter
+\title{Notes}
+\author{Maxim Zhilyaev}
+
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{amssymb}
+
+\newcommand{\bbx}{\pmb{x}}
+\newcommand{\bbz}{\pmb{z}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\reals}{\mathbb{R}} % Real number symbol
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}} % Complex numbers
+\newcommand{\integers}{\mathbb{Z}} % Integer symbol
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\rationals}{\mathbb{Q}} % Rational numbers
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\naturals}{\mathbb{N}} % Natural numbers
+\newcommand{\N}{\mathbb{N}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+
+\section{Clear Reports}
+
+Assume that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We will have each user donate his data $\bbx_i$. Further, we will inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake. We call this algorithm 
+\[
+M(\bbx_1,  \dots , \bbx_n) = \pi (\bbx_1, \dots , \bbx_n, \bbz_1, \dots , \bbz_m) \text{ where } \pi \text{ permutes its elements}. 
+\]
+We then compute the privacy loss of such an algorithm $M$. Equivalently, we could write the output as a histogram over the entire database, as in $M(\bbx_1,  \dots , \bbx_n) = \sum^n_{i=1} \bbx_i + \sum^m_{j=1} \bbz_j$. Note that rather than inject random noise to these counts, as in central differential privacy, we want to consider \emph{anonymized differential privacy}, where data records are transmitted through a mix net to break any identifiers with each data entry and the server sees the aggregated records in some random order. In this model, there is no trusted server that injects noise to ensure DP. Rather, the user needs to only trust the anonymizer to shuffle real and fake records.
+
+We then consider the privacy loss for a general mechanism $M$. Consider an outcome $h \in \N^d$, which is a histogram over the full dataset domain and neighboring datasets $\bbx$ and $\bbx'$.
+
+\begin{align}
+L(h) = \log \left ( \frac{\Pr[M(\bbx) = h]}{\Pr[M(\bbx') = h]} \right )
+\end{align}
+
+If we can bound $L(h)$ by $\epsilon$ for any outcome $h$ then we say that $M$ is $\epsilon$-DP. If we can bound $L(h)$ by $\epsilon$ with probability at least $1 - \delta$ where the randomness is over $h \sim M(\bbx)$, then we say that $M$ is $(\epsilon, \delta)$-DP.
+
+We now focus on $M$ being the mechanism described above, which injects $m$ fake reports. We can then write the privacy loss in the following way where we assume, without loss of generality, that $\bbx$ and $\bbx'$ only differ in the first record, i.e. $\bbx_i = \bbx'_i$ for all $i \ne 1$.
+
+\begin{align*}
+L(h) &= \log \left ( \frac{\Pr[x_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]}{\Pr[x'_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]} \right ) \\
+&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \bbx_1 - \sum^n_{i=2} \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h - \bbx'_1 - \sum^n_{i=2} x_i ]} \right )  \\
+&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \sum^n_{i=1}  \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h  - \sum^n_{i=1} \bbx_i  - (\bbx'_1 - \bbx_1) ]} \right )
+\end{align*}
+
+We denote  $\hat{h}$ to be the histogram of the fake records only $\hat{h} = h - \sum^n_{i=1} \bbx_i$, with respective counts in each histogram bin $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_d\}$.  Then the privacy loss ratio can be written as:
+
+\begin{align*}
+L(h) =  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h}  + \bbx_1 - \bbx'_1) ]} \right )
+\end{align*}
+
+
+
+The one-hot vectors $\bbx_1$  and $\bbx'_1$ may only differ in two positions, let these positions be $\ell$ and $\ell'$. 
+$\bbx_1$ and $\bbx'_1$ must have opposite bit-values in positions $i$ and $i'$ (otherwise these vectors are identical). 
+Without loss of generality assume $x_{1,\ell} = 1, x_{1,\ell'} = 0$ and $x'_{1,\ell} = 0, x'_{1,\ell'} = 1$.  
+Adding $\bbx_1$ adds 1 to $h_i$, while subtracting $\bbx'_1$ removes 1 from $h_\ell'$.
+Hence,  if $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d\} $, then  $\hat{h} + \bbx_1 -\bbx'_1 =  \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} -1, \dots, \hat{h}_d\} $.
+
+Further, note that the count the fake bits $\hat{h}_\ell = \sum^m_{j=1} \bbz_{j,\ell}$ is a binomial distribution $h_\ell \sim \text{Bin}(m, 1/d)$, and the distribution of the fake bit counts across the bins takes the multinomial form $ \hat{h} \sim \text{Multinomial}(m,(1/d,\cdots, 1/d))$. We then aim to bound the following quantity.
+
+\begin{align*}
+ L(h) &= \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h} + \bbx_1 - \bbx'_1]} \right ) \\
+ & = \log  \left ( \frac{ {m \choose \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d}}{ { m \choose hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} - 1, \dots, \hat{h}_d}} \right ) \\
+ & = \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) 
+\end{align*}
+
+It must be stressed that for a given pair of $(\bbx_1, \bbx'_1)$, the corresponding position pair $(\ell,\ell')$ where their bits are different is fixed, and the privacy loss only surfaces while observing the counts in the corresponding histogram bins $(h_\ell, h_{\ell'})$.  It's entirely possible to see high ratio between counts in some other histogram bins, but it wouldn't contribute to the privacy loss for a concrete pair $(\bbx_1, \bbx'_1)$.  This observation allows us to focus only on a single pair of the histogram bins, ignoring the rest of the histogram as immaterial.  
+
+By applying a Chernoff bound, we have a bound (symmetric for the upper and lower tail) for the sum of the fake bits in any bin $\hat{h}_k = \sum^m_{j=1} z_{j,k},  k \in [d]$
+
+\begin{align*}
+ \Pr \left [ \left | \hat{h}_k - \frac{m}{d} \right | > t \frac{m}{d} \right ]  \le 2 e^{- \frac{m}{d} \frac{t^2}{3}}, \qquad \text{ for  } 0 < t < 1.
+\end{align*}
+
+Choose $t$ to fit the expression below, hence $t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }$.
+%\begin{align}
+%2e^{- \frac{m}{d} \frac{t^2}{3}} = \frac{\delta}{2}  \\
+%- \frac{m}{d} \frac{t^2}{3} = \log{\frac{\delta}{4}}  \\
+% \frac{m}{d} \frac{t^2}{3} = \log{\frac{4}{\delta}} \\
+% t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }
+%\end{align}
+Using this expression for $t$ turns our Chernoff bound into the following,
+ 
+ \begin{align}
+ Pr \left [ \left | \bar{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \frac{\delta}{2}
+\end{align}
+
+Given any pair of the histogram bins at positions $(\ell,\ell')$, the probability of observing large deviation from the mean in at least one bin obeys the unions bound.
+\[
+\Pr \left [ \max_{k \in (\ell,\ell')} \left | \hat{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \delta
+\]
+
+We then condition on the event that both counts $\hat{h}_l$ or $\hat{h}_{l'}$ fall in the interval $m/d \pm \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}$, which event occurs with probability at least $1 - \delta$.  
+Conditioned on there being the given number of fake records, we can upper bound the privacy ratio $L(h)$
+
+ \begin{align}
+ L(h) =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \le \log  \left ( \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \le \epsilon 
+\end{align}
+
+From the above, we then get a condition on the number of fake records, m, to ensure DP.
+ \begin{align*}
+& \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^\epsilon  \\
+\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) - 1 \ge 0 \\
+\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}} \left ( \sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1) \right ) \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}}  \ge  \frac { \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  } { e^\epsilon - 1 } \\
+\implies & \frac{m}{d}  \ge 3\log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2
+\end{align*}
+
+As for the lower bound of $L(h)$, it's met if the upper bound is met.
+ \begin{align*}
+ L(h) & =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \ge \log  \left ( \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \ge - \epsilon  \\
+\implies &  \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \ge e^{-\epsilon} \\
+ \implies &  \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} \le e^{\epsilon}  \\
+\implies &   \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} < \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^{\epsilon} 
+\end{align*}
+
+
+
+\end{document}
+
