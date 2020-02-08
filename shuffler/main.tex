@@ -30,6 +30,7 @@
 \newcommand{\bbx}{\pmb{x}}
 \newcommand{\bbz}{\pmb{z}}
 \newcommand{\cX}{\mathcal{X}}
+\newcommand{\cR}{\mathcal{R}}
 \newcommand{\reals}{\mathbb{R}} % Real number symbol
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\C}{\mathbb{C}} % Complex numbers
@@ -145,6 +146,306 @@ As for the lower bound of $L(h)$, it's met if the upper bound is met.
 \end{align*}
 
 
+%%%%%%%%%%%%%%%%%%% - but flipping with fake records
+
+\section{Fake records and bit flipping}
+
+We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ changes flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
+\[
+M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
+\]
+
+Without los of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive a neighboring data set $\bbx'$.  The outcome is a histogram $g \in \N^d$ containing sums of randomized bits in each dimension, and the privacy loss:
+
+\begin{equation} \label{eq:lgbound}
+L(g) = \log \left ( \frac{\Pr[M_r(\bbx) = g]}{\Pr[M_r(\bbx') = g]} \right )
+\end{equation}
+
+The combined set $\bbx + \bbz$ gives raise to a histogram $h \in \N^d$ received by applying the before discussed mechanism M (clear true records plus fake records).  Hence, the $Pr [ M_r(x) = g ]$ can be written as a sum over of probabilities over the domain of $h$:
+
+ \begin{align*}
+ & Pr [ M_r(x) = g ] = \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot Pr [ g | h ]  \\
+\implies &  L(g) =  \log  \left ( \frac{  \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   }{    \sum_{h' \in \N^d}  Pr \left [  M(\bbx') = h' \right ] \cdot   Pr[ g | h']   } \right )
+\end{align*}
+
+Noting that
+\[
+ Pr \left [  M(\bbx) = h \right ]  =  Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]
+ \] 
+ 
+And regrouping  the privacy loss ratio to have summands with same $Pr \left [  M(\bbx) = h \right ]$ in identical positions in numerator and denominator, and applying \eqref{lem:rsbound} we have:
+ \begin{align*}
+& \log \left ( \max_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \text{ , and } \\
+& L(g) \ge  log \left ( \min_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right ) \\
+\end{align*}
+
+Probabilities $Pr \left [  M(\bbx) = h \right ]$ and $ Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]$ cancel each other out in each ratio, hence giving us the bounds of the privacy loss over domain of $h$ .
+
+\begin{align*}
+\log \left ( \max_{h \in \N^d} \left ( \frac{  Pr [ g | h ]   } { Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \ge  log \left ( \min_{h \in \N^d}  \left ( \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right )
+\end{align*}
+
+Since bits are flipped independently, the probability of finding certain number of bits in a particular histogram bin $g_l$ depends only on how many not-yet-randomized set bits there are in the dimension $l$, that is the value of $h_l$.  Such independence allows to re-write $Pr [ g | h]$ as a product of probabilities for each dimension.
+ \[
+Pr [ M_r(x) = g ] = Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] = \prod_{i=1}^d Pr[ g_i | h_i] 
+\]
+
+Without loss of generality assume that $\bbx_1$ and $\bbx'_1$ differ in the first and second positions, that is $\bbx_{1,1} = 1, \bbx_{1,2} = 0$ and $\bbx'_{1,1} = 0, \bbx'_{1,2} = 1$, then
+\begin{align*}
+ & h  - \bbx_1 + \bbx'_1 = \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} \\
+ \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{ Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] } { Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} ]  } \\
+  \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{  Pr[ g_1 | h_1] Pr[ g_2 | h_2] \prod_{i=3}^d Pr[ g_i | h_i]  } {  Pr[ g_1 | h_1 - 1] Pr[ g_2 | h_2 + 1] \prod_{i=3}^d Pr[ g_i | h_i]  }  \\
+   \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } =   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  } 
+\end{align*}
+
+Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds become:
+\begin{align*}
+& \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right ) \right ) \ge L(g) \ge  \min_{h \in \N^d}  \left ( \log \left (  \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }   \right ) \right ) \\
+\implies &  \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \max_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right) \ge L(g) \text{ , and } \\
+&  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
+\end{align*}
+
+Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.
+
+
+
+
+
+%%% Bounding ratio of sums by max ratio of terms
+
+\section{Appendix: Ratios of sums: properties}
+
+Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
+
+
+\begin{lem} \label{lem:rsbound}
+Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
+Then 
+\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
+\end{lem}
+\begin{pf}
+Write
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
+= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
+%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
+\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
+\end{align*}
+
+where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
+\end{align*}
+The low bound is derived in a similar fashion. 
+\end{pf}
+
+
+\section{Appendix: Bit flipping in single dimension}
+
+
+There are $n+1$ single bit records being sent through a shuffler.  Before sending, each bit is randomized with $\cR$ - that is, flipped with probability $q$  and kept unchanged with probability $p=1-q$.  the outcome $S$ is the sum of randomized bits. Let $D$ be a set of $n$ bits and construct a neighboring pair of datasets by adding to $D$ a set bit and a 0 zero bit.  Then the privacy loss ratio at any given value of $S$ is expressed as:
+\begin{equation} \label{eq:} 
+R(S|D)= \frac{P(S|D \cup 0)}{P(S|D \cup 1)}
+\end{equation}
+
+Each probability allows conditioning on possible values the added bit could generate:
+\begin{align}
+P(S|D \cup 0) = p \cdot P(S | D ) + q \cdot P( S - 1 | D) 
+\end{align}
+
+Indeed, if $0$ bit is randomized to itself (with probability $p$), then $S$ must be generated by $D$ alone, while if $0$ bit was flipped (with probability $q$) then $D$ must generate $S-1$ total bit sum. Similarly 
+\begin{align}
+P(S|D \cup 1) = p  \cdot P(S -1 | D ) + q \cdot P( S  | D) 
+\end{align}
+
+Combining two conditioning expressions into the privacy loss ratio one arrives to:
+\begin{equation} \label{eq:plratio}
+R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  } = \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} }
+\end{equation}
+
+\subsection{properties of $R(S|D)$}
+
+Let $\rho(S) = \frac{P(S | D )}{P(S - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $S$.  It's related to $R(S)$ as in:
+\[ 
+R(S|D) =  \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} } = \frac{q + p\rho(S)}{p + q\rho(S)}
+\]
+Let $g(x) = \frac{q + px}{p + qx}$, the function $g$ is increasing over $x>0$, since
+\[ g'(x) = \frac{p-q}{(p+qx)^2} > 0. \]
+Therefore, properties of monotonicity and extrema established for $\rho(S)$  carry over to $R(S)$ as well.
+ 
+ If  $D$ contains $m$ set bits, then the distribution of $S$ is a sum of two binomial distributions (a Poisson Binomial distribution): 
+ \[ S  \sim Bin(m,p) + Bin(n-m,q) \]
+ 
+ \begin{lem} \label{lem:rs1}
+When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ decreases monotonically as $S$ grows, reaching its maximum in $S=0$ and minimum in $S=N$.
+\end{lem}
+\begin{pf}
+ As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
+ \begin{align*}
+ & P(S)^2  > P(S-1) \cdot P(S+1) \\
+\implies &  \rho(S-1) > \rho(S) \\
+\implies & R(S-1) > R(S)
+\end{align*}
+\end{pf}
+
+ \begin{lem} \label{lem:rs2}
+ If randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, it's also $(\epsilon, \delta)$-private on a collection of $n+1$ bits.  In other words, if $n$ bit are protected with flipping frequency $q$, then all collections of greater size are also protected with same $q$. 
+\end{lem}
+\begin{pf}
+ Let $D$ be a collection of $n$ bits and derive a neighboring collection $D'$ by replacing 0-bit with a set bit.  A privacy loss ratio $R_n(S)$ for outcome $S$ is given below.
+  \begin{align*}
+R_n(S) = \frac{ P(S|D) }{ P(S|D') }
+\end{align*}
+
+Suppose a new 1-bit is added to both collections, then $R_{n+1}(S)$ is derived by conditioning
+ \begin{align*}
+R_{n+1}(S) = \frac{ P(S|D \cup 1) }{ P(S|D' \cup 1) } = \frac { P(S|D)q + P(S-1|D)p } { P(S|D')q + P(S-1|D')p}
+\end{align*}
+ 
+By lemma \eqref{lem:rsbound} and lemma  \eqref{lem:rs1} we have
+\begin{align*}
+ & \frac{P(S-1|D)}{P(S-1|D'} \ge  \frac { P(S|D)q + P(S-1|D)p } { P(S|D')q + P(S-1|D')p} \ge \frac{P(S|D)}{P(SD'} \\
+\implies & R_n(S-1) \ge R_{n+1}(S) \ge R_n(S) \\
+\implies & R_n(S) \ge R_{n+1}(S+1) \ge R_n(S+1)
+\end{align*}
+ 
+ 
+Suppose $R_n$ is $(\epsilon, \delta)$-private. Since $R_n$ is monotonically decreasing with $S$ (lemma  \eqref{lem:rs1} ), there must exist two values $\alpha + \beta = \delta$, such that $R_n$ is upper bounded on the left at a particular limiting value $S_\alpha$ 
+ \begin{align*}
+ R_n(S_\alpha) \le e^\epsilon \text{ and } P(S \le S_\alpha) \le \alpha
+\end{align*}
+And it's low bounded on the right at a particular limiting value $S_\beta$
+ \begin{align*}
+ R_n(S_\beta) \ge \frac{1}{e^\epsilon} \text{ and } P(S \ge S_\beta) \le \beta
+\end{align*}
+ 
+We consider 
+ 
+ As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
+ \begin{align*}
+ & P(S)^2  > P(S-1) \cdot P(S+1) \\
+\implies &  \rho(S-1) > \rho(S) \\
+\implies & R(S-1) > R(S)
+\end{align*}
+\end{pf}
+
+
+
+\begin{lem} \label{lem:rsreduce}
+ The privacy loss reduces as $S$ increases, reaching its maximum in $S=0$ and minimum in $S=N$.
+\end{lem}
+
+ the privacy loss reduces as $S$ increases, reaching its maximum in $S=0$ and minimum in $S=N$.
+
+
+
+
+
+
+
+Note that $\frac{P(S | D )}{P(S - 1| D )}$ as a \textbf{probability ratio} between adjacent values of $S$.  It's easy to see that privacy loss ratio maximizes when \textbf{probability ratio} maximizes. 
+
+Recall that $p>q$ and consider two positive values $A$ and $B$ 
+\begin{align*}
+\frac{ p \cdot A + q } { p + q \cdot A }  \ge \frac{ p \cdot B + q } { p + q \cdot B } \\
+p^2A + q^2B \ge p^2 B + q^2 A  \\
+A (p^2 - q^2) \ge B (p^2 - q^2)  \\
+A \ge B
+\end{align*}
+
+The above confirms that the distributions with largest \textbf{probability ratio} also exhibit larger privacy loss ratio. Hence we can focus on studying \textbf{probability ratio}  instead of privacy loss ratio and choose those $D$ that demonstrate sharpest decrease of probabilities in the left tail.
+
+
+
+
+Consider a collection $D$ of $N$ bits, subjected to randomization procedure $\cR$, whereby a bit is flipped with probability $q$ and kept unchanged with probability $p=1-q$.  The outcome of $\cR$ is a $a$ - sum of bits after randomization. The neigboring set $D_m$ is recieved form Assuming that $D$ contains $m$ set bits, we consider a privacy loss ratio $R_s$ computed for the outcome $s$:
+\[ R_s = \frac{P(s|D)}{P(s-1|D)} \] 
+
+
+consisting of $m$ ones and $N-m$ zeros.  Denote probability of number of successes for that collection as $P(S|D)$.
+The probability ratio at $s$  is given by:
+\[ R_s = \frac{P(s|D)}{P(s-1|D)} \] 
+
+Denote expectation of $s$ as $\mu$:
+\[ \mu = mp + (N-m)q \]
+
+For simplicity, denote probabilities at $s$ for $D$ as:
+\[ P(s|D) = P_{s} \]
+
+It's known that for all $s < \mu$ , the ratio $R_s$ is greater than $1$ and increasing:
+
+\textbf{Property 1.}
+\begin{align}
+R_{s-1} = \frac{P_{s-1}}{P_{s-2}} > R_s  = \frac{P_{s}}{P_{s-1}} \\
+P^2_{s-1} > P_sP_{s-2} 
+\end{align}
+
+Create two collections by adding to D one $1$ and one $0$.  Call them $D_1$ and $D_0$ respectively. The probability of observing $s$ from $D_1$ the is given by:
+\[ P(s | D_1) = pP_{s-1} + qP_s \]
+
+Similarly for the second collection (with extra 0):
+
+\[ P(s | D_0) = qP_{s-1} + pP_s \]
+
+Now consider the probability ratio for the collections $D_1$ and $D_0$ collections at some $s$:
+\begin{align}
+R_s(D_1) = \frac{ pP_{s-1} + qP_s }{pP_{s-2} + qP_{s-1}} \\
+R_s(D_0) = \frac{ qP_{s-1} + pP_s }{qP_{s-2} + pP_{s-1}}
+\end{align}
+ $N$ user bits are subjected to  
+
+
+\begin{lem} \label{lem:rsbound}
+Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
+Then 
+\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
+\end{lem}
+\begin{pf}
+Write
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
+= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
+%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
+\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
+\end{align*}
+
+where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
+\end{align*}
+The low bound is derived in a similar fashion. 
+\end{pf}
+
+
+
+\section{JUNK}
+
+
+Given the independence 
+
+
+
+ \begin{align*}
+ & Pr [ M_r(x) = g ] = \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot Pr [ g | h ] =  \sum_{h \in \N^d} \left ( Pr \left [  M(\bbx) = h \right ] \cdot  \prod_{i=1}^d Pr[ g_i | h_i]  \right ) \\
+\implies &  L(g) =  \log  \left ( \frac{  \sum_{h \in \N^d} \left ( Pr \left [  M(\bbx) = h \right ] \cdot  \prod_{i=1}^d Pr[ g_i | h_i]  \right )  }{    \sum_{h' \in \N^d} \left ( Pr \left [  M(\bbx') = h' \right ] \cdot  \prod_{i=1}^d Pr[ g_i | h'_i]  \right )  } \right )
+\end{align*}
+
+
+
+More formally, the value of $g_l$ is a sum of binomial distributions 
+Where $r$ is the number of set bits (both clear and fake) in the dimension $l$.   This allows us to 
+
+
+
+The value of $g_l$ distributed as a sum of two binomial variables.  
+\[ g_l  \sim Bin(h_l,p) + Bin(n+m-h_l,q) \]
+ 
+ 
+Applying \eqref{lem:rsbound} gives bounds of $R(S)$
+
+\begin{equation} \label{eq:rsbounds}
+ \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  } R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  }
+\end{equation}
 
 \end{document}
 
