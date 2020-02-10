@@ -150,7 +150,7 @@ As for the lower bound of $L(h)$, it's met if the upper bound is met.
 
 \section{Fake records and bit flipping}
 
-We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ changes flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
+We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
 \[
 M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
 \]
@@ -161,7 +161,7 @@ Without los of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive 
 L(g) = \log \left ( \frac{\Pr[M_r(\bbx) = g]}{\Pr[M_r(\bbx') = g]} \right )
 \end{equation}
 
-The combined set $\bbx + \bbz$ gives raise to a histogram $h \in \N^d$ received by applying the before discussed mechanism M (clear true records plus fake records).  Hence, the $Pr [ M_r(x) = g ]$ can be written as a sum over of probabilities over the domain of $h$:
+The combined set $\bbx + \bbz$ gives raise to a histogram $h \in \N^d$ received by applying the before discussed mechanism M (clear true records plus fake records).  Hence, the $Pr [ M_r(x) = g ]$ can be written as a sum of probabilities over the domain of $h$:
 
  \begin{align*}
  & Pr [ M_r(x) = g ] = \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot Pr [ g | h ]  \\
@@ -303,23 +303,50 @@ R_{n+1}(S) = \frac{ P(S|D \cup 1) }{ P(S|D' \cup 1) } = \frac { P(S|D)q + P(S-1|
 \end{align*}
  
 By lemma \eqref{lem:rsbound} and lemma  \eqref{lem:rs1} we have
-\begin{align*}
+\begin{align}
  & \frac{P(S-1|D)}{P(S-1|D'} \ge  \frac { P(S|D)q + P(S-1|D)p } { P(S|D')q + P(S-1|D')p} \ge \frac{P(S|D)}{P(SD'} \\
 \implies & R_n(S-1) \ge R_{n+1}(S) \ge R_n(S) \\
-\implies & R_n(S) \ge R_{n+1}(S+1) \ge R_n(S+1)
-\end{align*}
+\implies & R_n(S) \ge R_{n+1}(S+1) \ge R_n(S+1) \label{lem:rsb2}
+\end{align}
  
- 
-Suppose $R_n$ is $(\epsilon, \delta)$-private. Since $R_n$ is monotonically decreasing with $S$ (lemma  \eqref{lem:rs1} ), there must exist two values $\alpha + \beta = \delta$, such that $R_n$ is upper bounded on the left at a particular limiting value $S_\alpha$ 
- \begin{align*}
- R_n(S_\alpha) \le e^\epsilon \text{ and } P(S \le S_\alpha) \le \alpha
-\end{align*}
+Suppose $R_n$ is $(\epsilon, \delta)$-private. Since $R_n$ is monotonically decreasing with $S$ (lemma  \eqref{lem:rs1} ), there exist two values $\alpha + \beta \le \delta$, such that $R_n$ is upper bounded on the left at a particular limiting value $S_\alpha$ 
+ \begin{align}  \label{lem:rsb3}
+ R_n(S_\alpha) \le e^\epsilon \text{ and } P_n(S \le S_\alpha) \le \alpha 
+\end{align}
 And it's low bounded on the right at a particular limiting value $S_\beta$
- \begin{align*}
- R_n(S_\beta) \ge \frac{1}{e^\epsilon} \text{ and } P(S \ge S_\beta) \le \beta
-\end{align*}
+ \begin{align}  \label{lem:rsb4}
+ R_n(S_\beta) \ge \frac{1}{e^\epsilon} \text{ and } P_n(S \ge S_\beta) \le \beta
+\end{align}
  
-We consider 
+Consider the left (upper) bound first, and recall that according to \eqref{lem:rsb2}
+\[
+ R_n(S_\alpha) \ge R_{n+1}(S_\alpha+1) \ge R_n(S_\alpha+1)
+ \]
+ 
+$R_{n+1}(S_\alpha+1)$ is bounded because  $R_n(S_\alpha)$ is bounded per \eqref{lem:rsb3}.  Hence, $R_{n+1}$ could only be over the bound at $S_\alpha$, however the cumulative sum of probabilities up to $S_\alpha$ is always less for $n+1$ bits than for $n$ bits.
+ \begin{align}  \label{lem:rsb5}
+P_{n+1}(S \le S_\alpha) \le P_{n}(S \le S_\alpha)
+\end{align}
+We shall prove \eqref{lem:rsb5} in a moment. The important fact is that $R_n$ upper bounds $R_{n+1}$ at the left tail of distribution of $S$. 
+
+Similarly, 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ \newpage
+ 
  
  As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
  \begin{align*}
