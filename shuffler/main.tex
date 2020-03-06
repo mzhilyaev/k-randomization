@@ -205,7 +205,8 @@ Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds beco
 &  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
 \end{align*}
 
-Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.
+Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  More formally.
+
 
 
 
@@ -249,7 +250,7 @@ R(S|D)= \frac{P(S|D \cup 0)}{P(S|D \cup 1)}
 \end{equation}
 
 Each probability allows conditioning on possible values the added bit could generate:
-\begin{align}
+\begin{align}\label{lem:rs100}
 P(S|D \cup 0) = p \cdot P(S | D ) + q \cdot P( S - 1 | D) 
 \end{align}
 
@@ -262,8 +263,6 @@ Combining two conditioning expressions into the privacy loss ratio one arrives t
 \begin{equation} \label{eq:plratio}
 R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  } = \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} }
 \end{equation}
-
-\subsection{properties of $R(S|D)$}
 
 Let $\rho(S) = \frac{P(S | D )}{P(S - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $S$.  It's related to $R(S)$ as in:
 \[ 
@@ -288,16 +287,98 @@ When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ d
 \end{align*}
 \end{pf}
 
+ \begin{lem} \label{lem:rs1}
+When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ decreases monotonically as $S$ grows, reaching its maximum in $S=0$ and minimum in $S=N$.
+\end{lem}
+\begin{pf}
+ As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
+ \begin{align*}
+ & P(S)^2  > P(S-1) \cdot P(S+1) \\
+\implies &  \rho(S-1) > \rho(S) \\
+\implies & R(S-1) > R(S)
+\end{align*}
+\end{pf}
+
  \begin{lem} \label{lem:rs2}
  If randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, it's also $(\epsilon, \delta)$-private on a collection of $n+1$ bits.  In other words, if $n$ bit are protected with flipping frequency $q$, then all collections of greater size are also protected with same $q$. 
 \end{lem}
 \begin{pf}
- Let $D$ be a collection of $n$ bits and derive a neighboring collection $D'$ by replacing 0-bit with a set bit.  A privacy loss ratio $R_n(S)$ for outcome $S$ is given below.
-  \begin{align*}
-R_n(S) = \frac{ P(S|D) }{ P(S|D') }
+Let $D_n$ be a collection of $n$ bits and derive a neighboring collection $D'_n$ by replacing a single bit.  Since $\cR$ is $(\epsilon, \delta)$-private for $n$ bits, then for any set of outcomes $W$
+\begin{align}\label{lem:rs101}
+ && P(\cR(D'_n) \in W) \le \exp(\epsilon)P(\cR(D_n) \in W) + \delta \\
+ \implies && P(\cR(D'_n) \in W) - \exp(\epsilon)P(\cR(D_n) \in W) \le \delta
+\end{align}
+ 
+ Now add a 0 bit to both $D_n$ and $D'_n$.  The probability of the extended collections $D_{n+1}$ and $D'_{n+1}$ generating a particular outcome $S$ is given by  \eqref{lem:rs100}
+ \begin{align}\label{lem:rs102}
+P(\cR(D_{n+1}) = S) = P(\cR(D_n)=S) \cdot p + P(\cR(D_n)=S-1) \cdot q
+\end{align}
+
+Assume that $\cR(D_{n+1})$ is not $(\epsilon, \delta)$-private, then there must exists a set $W'$ such that 
+\begin{align}\label{lem:rs103}
+P(\cR(D'_{n+1}) \in W') > \exp(\epsilon)P(\cR(D_{n+1}) \in W') + \delta
+\end{align}
+ 
+Suppose $W'$ contains $r$ distinct outcomes $W'=\{S_1, S_2, \cdots, S_r\}$, then
+\begin{align}
+P(\cR(D_{n+1}) \in W') = \sum_i^r P( \cR(D_{n+1})  = S_i) \\
+=  \sum_i^r \left [ P( \cR(D_{n})  = S_i) + P(\cR(D_n)=S_i-1) \cdot q \right ]  \text{ by  \eqref{lem:rs102} } \\
+= p \sum_i^r P( \cR(D_{n})  = S_i)  + q \sum_i^r  P( \cR(D_{n})  = S_i - 1)  \label{lem:rs103}
+\end{align}
+ 
+ Define a set $W'' = \{S_1 - 1, S_2 - 1, \cdots, S_r - 1\}$, then \eqref{lem:rs100} can be rewritten in the form membership probabilities.  
+ \begin{align}
+P(\cR(D_{n+1}) \in W') = p \sum_i^r P( \cR(D_{n})  = S_i)  + q \sum_i^r  P( \cR(D_{n})  = S_i - 1) \\
+= p \cdot P(\cR(D_n) \in W') + q \cdot P(\cR(D_n) \in W'')
+\end{align}
+
+In the same fashion we arrive to the expression of $P(\cR(D'_{n+1}) \in W')$
+ \begin{align}
+P(\cR(D'_{n+1}) \in W') = p \cdot P(\cR(D'_n) \in W') + q \cdot P(\cR(D'_n) \in W'')
+\end{align}
+
+Plugging the above probabilities into  \eqref{lem:rs103}, we arrive to an inequality that must hold if $\cR(D_{n+1})$ is not $(\epsilon, \delta)$-private.
+ \begin{align}
+ P(\cR(D'_{n+1}) \in W') > \exp(\epsilon)P(\cR(D_{n+1}) \in W') + \delta \\
+P(\cR(D'_{n+1}) \in W') - \exp(\epsilon)P(\cR(D_{n+1}) \in W') > \delta \\
+p \cdot P(\cR(D'_n) \in W') + q \cdot P(\cR(D'_n) \in W'') - p \cdot P(\cR(D_n) \in W') - q \cdot P(\cR(D_n) \in W'') > \delta \\
+p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] > \delta   \label{lem:rs105}
+\end{align}
+
+However \eqref{lem:rs101} implies that 
+ \begin{align*}
+&& \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] \le \delta \\
+\text{and} &&  \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta \\
+\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le p\delta + q\delta \\
+\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta (p+q) \\
+\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta
 \end{align*}
 
-Suppose a new 1-bit is added to both collections, then $R_{n+1}(S)$ is derived by conditioning
+Which contradicts  \eqref{lem:rs105} and proves the lemma.
+\end{pf}
+
+\subsection{properties of zero valued collection}
+A homogenous collection of $n$ zero bits is an important spacial case, hence we present findings for it below.  Let $D$ consists of $n$ zero bits, then the neighbor $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying procedure $\cR(D)$ is a sum of randomized bits $S$. The following relationships hold.
+
+\begin{align}
+E(S) = q \cdot n \\
+P(S=i | D ) = \binom{n}{i}q^ip^{n-i} \\
+P(S=i | D' ) = \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1}  \\
+R(i)  = \frac{P(s=i | D')}{P(s=i | D)} = \frac{ \binom{n}{i}q^ip^{n-i} }{  \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1} } \\
+\frac{1}{R(i)} =  \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q}
+\end{align}
+
+By applying Chernoff bound to the distribution of $s$, we receive
+ \begin{align}
+P(|S - \mu| > t\mu) \le e^{- \frac{t^2\mu}{3}}
+\end{align}
+
+Setting $t=$
+ 
+ \newpage
+ \section{IGNORE THIS STAFF}
+ 
+ Suppose a new 1-bit is added to both collections, then $R_{n+1}(S)$ is derived by conditioning
  \begin{align*}
 R_{n+1}(S) = \frac{ P(S|D \cup 1) }{ P(S|D' \cup 1) } = \frac { P(S|D)q + P(S-1|D)p } { P(S|D')q + P(S-1|D')p}
 \end{align*}
@@ -330,22 +411,6 @@ P_{n+1}(S \le S_\alpha) \le P_{n}(S \le S_\alpha)
 We shall prove \eqref{lem:rsb5} in a moment. The important fact is that $R_n$ upper bounds $R_{n+1}$ at the left tail of distribution of $S$. 
 
 Similarly, 
-
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- \newpage
  
  
  As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
@@ -354,7 +419,6 @@ Similarly,
 \implies &  \rho(S-1) > \rho(S) \\
 \implies & R(S-1) > R(S)
 \end{align*}
-\end{pf}
 
 
 
