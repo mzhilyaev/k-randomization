@@ -358,10 +358,10 @@ Which contradicts  \eqref{lem:rs105} and proves the lemma.
 \end{pf}
 
 \subsection{properties of zero valued collection}
-A homogenous collection of $n$ zero bits is an important spacial case, hence we present findings for it below.  Let $D$ consists of $n$ zero bits, then the neighbor $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying procedure $\cR(D)$ is a sum of randomized bits $S$. The following relationships hold.
+A homogenous collection of $n$ zero bits is an important spacial case, hence we present findings for it below.  Let $D$ consists of $n$ zero bits, then the neighbor $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying procedure c is a sum of randomized bits $S$. The following relationships hold.
 
 \begin{align}
-E(S) = q \cdot n \\
+\mu = E(S) = q \cdot n \\
 P(S=i | D ) = \binom{n}{i}q^ip^{n-i} \\
 P(S=i | D' ) = \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1}  \\
 R(i)  = \frac{P(s=i | D')}{P(s=i | D)} = \frac{ \binom{n}{i}q^ip^{n-i} }{  \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1} } \\
@@ -370,13 +370,60 @@ R(i)  = \frac{P(s=i | D')}{P(s=i | D)} = \frac{ \binom{n}{i}q^ip^{n-i} }{  \bino
 
 By applying Chernoff bound to the distribution of $s$, we receive
  \begin{align}
-P(|S - \mu| > t\mu) \le e^{- \frac{t^2\mu}{3}}
+P(|S - \mu| > t\mu) \le 2 e^{- \frac{t^2\mu}{3}}
 \end{align}
 
-Setting $t=$
+Setting $t=\sqrt{\frac{3}{\mu} ln\frac{2}{\delta}}$ one arrives to
+ \begin{align}
+P \left (|S - \mu| >\sqrt{3nq \cdot ln\frac{2}{\delta}} \right ) \le \delta
+\end{align}
  
+Setting $l=\sqrt{3nq \cdot ln\frac{2}{\delta}}$, one is ensured that values of $P(S \in [\mu - l, \mu + l ]) \ge 1- \delta$. Conditioned on  $S \in [\mu - l, \mu + l ]$ we  bound the privacy loss ratio $R(i)$ in this interval in the following way:
+\begin{align}
+  && e^\epsilon \ge R(i) \ge e^{-\epsilon} \\ 
+ \implies &&  e^{-\epsilon} \le \frac{1}{R(i)} \le e^\epsilon \\
+  \implies &&  e^{-\epsilon} \le \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \le e^\epsilon
+\end{align}
+
+We first bound the left side of the inequality, setting $i = \mu - l$
+\begin{align}
+\frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{n-(\mu-l)}{n}\frac{q}{p} + \frac{\mu-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{n-(nq-l)}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{np + l}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+q + \frac{l}{n}\frac{q}{p} +  p - \frac{l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+1 - \frac{l}{n} \frac{p-q}{pq}  \ge e^{-\epsilon}. \\
+l \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q}  
+\end{align}
+
+Plugging expression for $l$ one arrives to the bound of $q$
+\begin{align}
+\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q} \\
+ \frac {(p - q)^2} {q \cdot p^2} \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
+ \text{ since }  \frac {(p - q)^2} { p^2} \le 1 \text{ , then }  \\
+  \frac {(p - q)^2} {q \cdot p^2} \le \frac{1}{q}  \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
+  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 } \label{lem:rs201}
+\end{align}
+
+In a similar fashion, one arrives to the right side bound
+\begin{align}
+i = \mu + l \\
+\frac{l}{n} \frac{p-q}{pq}  \le e^\epsilon - 1 \\
+\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ e^\epsilon - 1  \right ] \frac { npq}{p - q} \\
+  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ e^{\epsilon} - 1\right ]^2 }  \label{lem:rs202}
+\end{align}
+
+Note that since $x + 1/x \ge 2$, then 
+\[ e^{\epsilon} - 1 \ge 1 - e^{-\epsilon} \]
+Which implies that if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met, which leads to the following lemma
+ \begin{lem} \label{lem:rs1}
+ Bit flipping randomization procedure $\cR$ applied to a collection of $n$ zero bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
+ \begin{align*}
+  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }\end{align*}
+\end{lem}
+
  \newpage
- \section{IGNORE THIS STAFF}
+ \section{IGNORE BELOW THIS LINE}
  
  Suppose a new 1-bit is added to both collections, then $R_{n+1}(S)$ is derived by conditioning
  \begin{align*}
