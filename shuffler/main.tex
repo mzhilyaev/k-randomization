@@ -205,40 +205,18 @@ Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds beco
 &  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
 \end{align*}
 
-Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  More formally.
+Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  
 
+Suppose that $r$ fake records (out of $m$) happened to have zero bits in the affected dimentions ($1$ and $2$).  We will show later that $r \to m$,  for  large $d$.  Then we are bounding the product of privacy loss ratios in both dimentions to stay between $e^{-\epsilon}$ and $e^\epsilon$ with probability $1-\delta$.
+\begin{align} \label{lem:fk101}
+P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta
+\end{align}
 
+We achieve condition of \eqref{lem:rs201} by boiunding the ratio in each column separately with probability $1-\delta/2$.
+\begin{align} \label{lem:fk101}
+P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta
+\end{align}
 
-
-
-
-%%% Bounding ratio of sums by max ratio of terms
-
-\section{Appendix: Ratios of sums: properties}
-
-Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
-
-
-\begin{lem} \label{lem:rsbound}
-Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
-Then 
-\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
-\end{lem}
-\begin{pf}
-Write
- \begin{align*}
-  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
-= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
-%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
-\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
-\end{align*}
-
-where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
- \begin{align*}
-  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
-\end{align*}
-The low bound is derived in a similar fashion. 
-\end{pf}
 
 
 \section{Appendix: Bit flipping in single dimension}
@@ -416,11 +394,42 @@ i = \mu + l \\
 Note that since $x + 1/x \ge 2$, then 
 \[ e^{\epsilon} - 1 \ge 1 - e^{-\epsilon} \]
 Which implies that if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met, which leads to the following lemma
- \begin{lem} \label{lem:rs1}
+
+ \begin{lem} \label{lem:rs203}
  Bit flipping randomization procedure $\cR$ applied to a collection of $n$ zero bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
  \begin{align*}
-  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }\end{align*}
+  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }\end{align*}
 \end{lem}
+
+
+%%% Bounding ratio of sums by max ratio of terms
+
+\section{Appendix: Ratios of sums: properties}
+
+Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
+
+
+\begin{lem} \label{lem:rsbound}
+Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
+Then 
+\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
+\end{lem}
+\begin{pf}
+Write
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
+= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
+%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
+\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
+\end{align*}
+
+where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
+\end{align*}
+The low bound is derived in a similar fashion. 
+\end{pf}
+
 
  \newpage
  \section{IGNORE BELOW THIS LINE}
