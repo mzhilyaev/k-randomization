@@ -243,9 +243,9 @@ R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | 
 \end{equation}
 
 Let $\rho(S) = \frac{P(S | D )}{P(S - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $S$.  It's related to $R(S)$ as in:
-\[ 
+\begin{equation} \label{eq:plratio1}
 R(S|D) =  \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} } = \frac{q + p\rho(S)}{p + q\rho(S)}
-\]
+\end{equation}
 Let $g(x) = \frac{q + px}{p + qx}$, the function $g$ is increasing over $x>0$, since
 \[ g'(x) = \frac{p-q}{(p+qx)^2} > 0. \]
 Therefore, properties of monotonicity and extrema established for $\rho(S)$  carry over to $R(S)$ as well.
@@ -277,8 +277,57 @@ When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ d
 \end{align*}
 \end{pf}
 
- \begin{lem} \label{lem:rs2}
- If randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, it's also $(\epsilon, \delta)$-private on a collection of $n+1$ bits.  In other words, if $n$ bit are protected with flipping frequency $q$, then all collections of greater size are also protected with same $q$. 
+\begin{lem} \label{lem:rs3}
+Denote a collections of $n$ bits containing $r$ set bits and $n-r$ zero bits as $D_r$. Further denote the corresponding quantities:
+\begin{itemize}
+\item privacy loss ratio at a particular value $S$ as $R(S|D_r) = \frac{P(S|D_r)}{P(SD'_r)}z$
+\item probability ratio at a particular value $S$ as $\rho(S|D_r) = \frac{P(S|D_r)}{P(S-1|D_r)}$
+\item expected value of $S$ as $\mu_r = p \cdot r + q \cdot (n-r)$
+\end{itemize}
+Choose a distance $l$ such that $l \ge npq$, then 
+\[ \rho[\mu_r - l|D_r] \le \rho[\mu_0 - (l+2)|D_0] \]
+That is, the probability ratio for any collection is bound by the probability ratio of the zero collection. 
+\end{lem}
+\begin{pf}
+PROOF IS INVOLVED AND WILL BE GIVEN LATER IN APPENDIX.  Max needs to fix Dave's notations, skipping for now.
+\end{pf}
+
+From lemma \eqref{lem:rs3} immediately follow corollaries below
+\begin{cor}
+For left deviations $l \ge npq$ from the mean the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ zero bits
+\[ R[\mu_r - l|D_r] \le R[\mu_0 - (l+2)|D_0] \]
+\end{cor}
+\begin{pf}
+From  \eqref{eq:plratio1} \[ R(S|D_r) = \frac{q + p\rho_r(S)}{p + q\rho_r(S)} \] 
+Given that $\rho_r(S) \le \rho_0(S)$, we have 
+\begin{align*}
+R(S|D_r) = \frac{q + p\rho_r(S)}{p + q\rho_r(S)} \le R(S|D_0) = \frac{q + p\rho_0(S)}{p + q\rho_0(S)} \\
+qp + q^2\rho_0(S) + p^2 \rho_r(S) + pq \cdot \rho_0(S) \cdot \rho_r(S) \le qp + p^2\rho_0(S) + q^2 \rho_r(S) + pq \cdot \rho_0(S) \cdot \rho_r(S) \\
+\rho_r(S) (p^2 - q^2) \le \rho_0(S) (p^2 - q^2)  \\
+\rho_r(S) \le \rho_0(S)
+\end{align*} 
+\end{pf}
+
+The next corollary bounds the right tail of distribution
+\begin{cor}
+For right deviations $l \ge npq$ from the mean, the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ set bits
+\[ R[\mu_r + l|D_r] \le R[\mu_n + l+2 |D_n] \]
+\end{cor}
+\begin{pf}
+TODO - proving by symmetry between $D_0$ and $D_n$ distributions. 
+\end{pf}
+
+Using the bound \eqref{lem:rs201} and the fact that all-zero and all-set bit collections provide identical bounds to the privacy loss ratio for the left and the right side of distribution, we finally arrive to an important theorem.
+\begin{prop}
+randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, when the flipping frequency $q$ obeys the bound below
+\begin{equation} \label{eq:fullbound}
+q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon} - 2 \frac{p-q}{npq} \right ]^2 }
+\end{equation}
+\end{prop}
+Note that the term $2 \frac{p-q}{npq}$ appeared due to $l+2$ correction of both corollaries above.  For sufficiently large $n$, this term diminishes to zero, which simplifies the bound to the form of lemma  \egref{lem:rs203}
+
+\begin{lem} \label{lem:rs2}
+If randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, it's also $(\epsilon, \delta)$-private on a collection of $n+1$ bits.  In other words, if $n$ bit are protected with flipping frequency $q$, then all collections of greater size are also protected with same $q$. 
 \end{lem}
 \begin{pf}
 Let $D_n$ be a collection of $n$ bits and derive a neighboring collection $D'_n$ by replacing a single bit.  Since $\cR$ is $(\epsilon, \delta)$-private for $n$ bits, then for any set of outcomes $W$
@@ -334,6 +383,7 @@ However \eqref{lem:rs101} implies that
 
 Which contradicts  \eqref{lem:rs105} and proves the lemma.
 \end{pf}
+
 
 \subsection{properties of zero valued collection}
 A homogenous collection of $n$ zero bits is an important spacial case, hence we present findings for it below.  Let $D$ consists of $n$ zero bits, then the neighbor $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying procedure c is a sum of randomized bits $S$. The following relationships hold.
@@ -401,6 +451,14 @@ Which implies that if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202
   q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }\end{align*}
 \end{lem}
 
+By using the symmetry property of all-zero and all-set bits distributions, one arrives at the the identical statement for all-set bits collection
+ \begin{lem} \label{lem:rs204}
+ Bit flipping randomization procedure $\cR$ applied to a collection of $n$ set bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
+ \begin{align*}
+  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n l\eft [ 1 - e^{-\epsilon}\right ]^2 }
+  \end{align*}
+\end{lem
+}
 
 %%% Bounding ratio of sums by max ratio of terms
 
