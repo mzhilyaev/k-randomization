@@ -40,11 +40,13 @@
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\naturals}{\mathbb{N}} % Natural numbers
 \newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}} % expectation
 
 \newcommand{\Dsp}{\mathcal{D}}
 \newcommand{\Ssp}{\mathcal{S}}
 \newcommand{\Bsp}{\mathcal{B}}
 \newcommand{\Tsp}{\mathcal{T}}
+\newcommand{\Hsp}{\mathcal{H}}
 \newcommand{\xv}{\mathbf{x}}
 \newcommand{\yv}{\mathbf{y}}
 \newcommand{\sv}{\mathbf{s}}
@@ -105,40 +107,632 @@ In other words, the outcomes from the two databases databases differing in one r
 \begin{defn}
 A randomized algorithm $\cR$ generates point-wise  $(\epsilon,\delta)$-\textbf{indistinguishable} outcomes for two databases $\xv,\xv' \in \Dsp^n$ when
 \begin{equation} \label{eq:dpcnt}
-\P \left ( \exp(-\epsilon) \le \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta
+\P \left ( \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta
 \end{equation}
 \end{defn}
 
 \begin{prop} \label{prop:dpcnt}
-A randomized algorithm $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private} if for every pair of neighboring databases $\xv,\xv' \in \Dsp^n$, $\cR$ generates point-wise  $(\epsilon,\delta)$-\textbf{indistinguishable} outcomes.   Per reference [2]
+A randomized algorithm $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private} if for every pair of neighboring databases $\xv,\xv' \in \Dsp^n$, $\cR$ generates point-wise  $(\epsilon,\delta)$-\textbf{indistinguishable} outcomes.   Per reference [2].  (Ryan Rogers, etc..)
 
 To restate.
 \begin{align} \label{eq:dpcnt}
  & \P \left ( \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta \text{, for any two neighbors } \xv,\xv' \\
 \implies & \cR \text{ is } (\epsilon,\delta)-\textbf{differentially private}
 \end{align}
+\end{prop}
+
+\begin{prop}\label{cr:max} If ${\Ssp}$  if finite, there exists a set $S_m \cont \Ssp$, such that it maximizes the difference
+\[ \P[\cR(\xv) \in S]  - \exp(\epsilon) \cdot \P[\cR(\xv') \in S] \]
+
+Suppose ${\Ssp}$  if finite.  Then the for any $S \cont \Ssp$ respective set inclusion probabilities are
+\begin{align*}
+\P[\cR(\xv) \in S]  = \sum_{s \in S} \P[\cR(\xv) = s]  \\
+ \P[\cR(\xv) \in S]  = \sum_{s \in S} \P[\cR(\xv') = s]  \\
+\end{align*}
+
+Consider a set  $S_m \cont \Ssp$ containing all and only $s \in S$, such that $\P[\cR(\xv) = s] >  \exp(\epsilon) \P[\cR(\xv') = s]$, that is - all point-wise distinguishable values of $s$.  The  $\sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] $ reaches maximum in $S_m$. Indeed, any set $S$ different from $S_m$ will contain either point-wise indistinguishable values of $s$ and they would reduce the sum or miss point-wise distinguishable values of $s$, which would also reduce the sum.   More formally:
+\begin{align*}
+& \sum_{s \in S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] - \sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \\
+= & \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  -  \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \\
+ & \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  < 0, \text{ since } \forall s \in S \setminus S_m,   \P[\cR(\xv) = s] < \exp(\epsilon)  \P[\cR(\xv') = s] \\
+ & \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  \ge 0, \text{ since } \forall s \in S_m \setminus S,   \P[\cR(\xv) = s] > \exp(\epsilon)  \P[\cR(\xv') = s] \\
+ \text{hence} &  \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  -  \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] > 0
+\end{align*}
+\end{prop}
+
+\begin{prop} \label{prop:equavalent} For finite domains ${\Ssp}$ the $(\epsilon,\delta)$-\textbf{differential privacy} and  $(\epsilon,\delta)$-\textbf{indistinguishability} are equivalent - one implies the other. 
+
+Suppose ${\Ssp}$  if finite.  Then the $(\epsilon,\delta)$-\textbf{differentially private} condition holds if the following holds:
+\begin{align}\label{eq:diff}
+\sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \le \delta , \forall S \cont \Ssp
+\end{align}
+
+And there exists the maximal $S_m$ containing all and only point-wise distinguishable values of $s$.  $S_m$ maximizes the difference below.
+ \[ \P[\cR(\xv) \in S]  - \exp(\epsilon) \cdot \P[\cR(\xv') \in S] \]
+ 
+The probability of $s$ being point-wise distinguishable is exactly the probability $P[s \in S_m]$ since it contains just the distinguishable $s$, and hence if  $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private}, then it's also $(\epsilon,\delta)$-\textbf{indistinguishable}.
+
+Now assume $\cR$ is $(\epsilon,\delta)$-\textbf{indistinguishable}, then by definition
+\begin{align*}
+& \P( \P[\cR(\xv) = s] >  \exp(\epsilon) \P[\cR(\xv') = s] ) < \delta & \\
+\implies & P( \P[\cR(\xv) \in S_m] >  \exp(\epsilon) \P[\cR(\xv') \in S_m]) < \delta & \\
+\implies & \sum_{s \in S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] < \delta & \\
+\implies & \forall S \cont \Ssp,  \sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] < \delta  & \text{ by maximality of } S_m
+\end{align*}
+\end{prop}
+
+\section{Single record shuffling protocol}
+
+There are $n$ users, each holding a user value $x_i \in \cX$.  User values form a database of user records a dataset $\bbx = \{x_1,\dots ,x_n\}$. Each user applies a randomization procedure $\cR(x): \map{\cR}{\cX}{\Ssp}$, then submits $\cR(x_i)$ to an anonymizer that shuffles the data and makes it impossible to determine which user submitted a record. We call this algorithm 
+\[
+M(x_1,  \dots , x_n) = \pi (\cR(x_1), \dots , \cR(x_n)) \text{ where } \pi \text{ permutes its elements}. 
+\]
+
+If $\Ssp$ a finite domain of dimension $d$,  we can write the output of $M$ as a histogram $h \in \N^d$ over the entire domain $\Ssp$.   $M(x_1,  \dots , x_n) = \{h_1, h_2, ..., h_d\}$. Where each histogram value $h_i$ represents the number of users reported a particular value $s_i \in  \Ssp$.   We then describe $M$ as a mapping $M(\bbx):\map{M}{\bbx}{\Hsp_n = \N^d}$, whereby an outcome of $M(\bbx)$ is a particular histogram $h \in \Hsp_n$, that is a histograms of $d$-bins and $n$-records.
+
+\begin{prop} If $M$ is $(\epsilon,\delta)$-\textbf{differentially private} for $n$ records, then it's $(\epsilon,\delta)$-\textbf{differentially private} for $n+1$ records. Thus, protection for $n$ records is enough for any number of records above $n$
+
+Assume  $M$ is  $(\epsilon,\delta)$-\textbf{differentially private} for $n$ values of $\bbx$. Then for any neighboring datasets $\bbx$ and $\bbx'$ of size $n$, and any $H_n \cont \Hsp_n$
+ \begin{align}
+ \P[M(\xv) \in H_n] - \exp(\epsilon) \cdot \P[M(\xv') \in H_n]  \le \delta &  & \\
+ \sum_{h \in H_n} \left ( \P[M(\xv) = h] -  \exp(\epsilon)  \P[M(\xv') = h]  \right )  \le \delta  &  & \Hsp_n \text{ is finite }  \label{eq:histdiff}
+\end{align}
+Add another user record $x$, then respective probabilities of an outcome $h=\{h_1, h_2, ..., h_d\}$ produced by $M(\xv \cup x)$ and $M(\xv' \cup x)$ is given below:
+ \begin{align}
+\P[M(\xv \cup x) = h] = \sum^d_i \P[\cR(x) = s_i]\P(M(\xv) = \{h_1 , \cdots ,h_i -1, \cdots, h_d \} \label{eq:hp1} \\
+\P[M(\xv' \cup x) = h] = \sum^d_i \P[\cR(x) = s_i]\P(M(\xv') = \{h_1 , \cdots ,h_i -1, \cdots, h_d \} \label{eq:hp2}
+\end{align}
+
+Since $ \Hsp_{n+1}$ if finite, then for every set $H_{n+1} \cont  \Hsp_{n+1}$:
+ \begin{align*}
+ & \P[M(\xv \cup x) \in H_{n+1}] - \exp(\epsilon) \cdot \P[M(\xv' \cup x) \in H_{n+1}]  & \\
+ = & \sum_{h \in H_{n+1}} \left ( \P[M(\xv \cup x) = h] -  \exp(\epsilon)  \P[M(\xv' \cup x) = h]  \right )  & \\
+ =  & \sum_{h \in H_{n+1}}   \left (    \begin{matrix}
+\sum^d_i \P[\cR(x) = s_i]\P(M(\xv) = \{h_1 , \cdots ,h_i -1, \cdots, h_d \}  \\ 
+ -  \exp(\epsilon)\sum^d_i \P[\cR(x) = s_i]\P(M(\xv') = \{h_1 , \cdots ,h_i -1, \cdots, h_d \}   
+\end{matrix}
+  \right) &  \eqref{eq:hp1}  and  \eqref{eq:hp2} 
+\end{align*}
+
+After rearranging the oder of summation and combining terms with same $ \P[\cR(x) = s_i]$, we have:
+ \begin{align*}
+& \P[M(\xv \cup x) \in H_{n+1}] - \exp(\epsilon) \cdot \P[M(\xv' \cup x) \in H_{n+1}]  \\
+= & \begin{pmatrix} 
+& \P[\cR(x) = s_1] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1 -1 , h_2, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1 - 1, h_2,  \cdots, h_d \}   \right) \\
++ & \P[\cR(x) = s_2] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, h_2 - 1, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1,  h_2 - 1, \cdots, h_d \}   \right) \\
+& \cdots \cdots \\
++  & \P[\cR(x) = s_d] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, h_2, \cdots, h_d -1 \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1, h_2,  \cdots, h_d -1 \}   \right) 
+\end{pmatrix}
+ \end{align*}
+Note that each sum of the form  
+\[ \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, \cdots, h_i-1, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1 - 1,  \cdots, h_i-1, \cdots, h_d \}   \right) \]
+is done over histograms of size $n$, and represents a differential privacy difference, which by assumption  \eqref{eq:histdiff} bounded by $\delta$
+\[ \P[M(\xv) \in H_n] - \exp(\epsilon) \cdot \P[M(\xv') \in H_n] \le \delta \]
+
+From here:
+ \begin{align*}
+& \P[M(\xv \cup x) \in H_{n+1}] - \exp(\epsilon) \cdot \P[M(\xv' \cup x) \in H_{n+1}]  \\
+= & \begin{pmatrix} 
+& \P[\cR(x) = s_1] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1 -1 , h_2, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1 - 1, h_2,  \cdots, h_d \}   \right) \\
++ & \P[\cR(x) = s_2] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, h_2 - 1, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1,  h_2 - 1, \cdots, h_d \}   \right) \\
+& \cdots \cdots \\
++  & \P[\cR(x) = s_d] \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, h_2, \cdots, h_d -1 \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1, h_2,  \cdots, h_d -1 \}   \right) 
+\end{pmatrix} \\
+= & \sum^d_i  \P[\cR(x) = s_i] \left (   \P[M(\xv) \in H^i_n] - \exp(\epsilon) \cdot \P[M(\xv') \in H^i_n] \right ) \\
+\le &  \sum^d_i  \P[\cR(x) = s_i]  \delta \\
+= & \delta \sum^d_i  \P[\cR(x) = s_i]  
+ \end{align*}
+ 
+ Since $ \sum^d_i  \P[\cR(x) = s_i] =1$, we arrive to the desired proof
+ \[  \P[M(\xv \cup x) \in H_{n+1}] - \exp(\epsilon) \cdot \P[M(\xv' \cup x) \in H_{n+1}]   \le \delta \]
 
 \end{prop}
 
-\subsection{Single record shuffling protocol}
 
-There are $n$ users, each holding a user value $x_i \in \cX$.  User values form a database of user records a dataset $\bbx = \{x_1,\dots ,x_n\}$. Each user applies a randomization procedure $\cR(x): \map{\cR}{\cX}{\Ssp}$, then submits $\cR(x_i)$ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake. We call this algorithm 
+\section{Single bit shuffling protocol}
+
+We now consider an important scenario where users report bit values, which they flip and send randomized result to the shuffler. 
+There are $n$ users, each holding a value $x \in \{0,1\}$.  User bits form a dataset $D  \cont \Dsp = \{0,1\}^n$. 
+Each user applies a randomization procedure $\cR(x): \map{\cR}{\{0,1\}}{\{0,1\}}$, which flips the original bit value with probability $q$ and keeps it unchanged with probability $p=1-q$.  
+A user, then submits a randomized bit $\cR(x_i)$ to an anonymizer that shuffles the data and makes impossible to trace a reported bit to its sender. As before, we consider algorithm
 \[
-M(\bbx_1,  \dots , \bbx_n) = \pi (\cR(x_1), \dots , \cR(x_n)) \text{ where } \pi \text{ permutes its elements}. 
+M(D) = \pi (\cR(x_1), \dots , \cR(x_n)) \text{ where } \pi \text{ permutes its elements}. 
 \]
 
-If $\Ssp$ finite,  we can write the output of $M$ as a histogram over the entire database, as in $M(\bbx_1,  \dots , \bbx_n) = \sum^n_{i=1} \bbx_i + \sum^m_{j=1} \bbz_j$. Note that rather than inject random noise to these counts, as in central differential privacy, we want to consider \emph{anonymized differential privacy}, where data records are transmitted through a mix net to break any identifiers with each data entry and the server sees the aggregated records in some random order. In this model, there is no trusted server that injects noise to ensure DP. Rather, the user needs to only trust the anonymizer to shuffle real and fake records.
+Since the the reported bits are shuffled, the measurer can only add them up, and the outcome $M(D)$ is uniquely determined by the sum of the reported randomized bits $s \in \Ssp = \{0,1,\cdots,n\}$. Let $D$ be a set of $n$ bits and construct a neighboring pair of datasets by adding to $D$ a set bit $1$ and a zero bit $0$.  Note that the domain $\Ssp$ is finite.  Hence, due to proposition \ref{prop:equavalent}, there are two equivalent expression for the $(\epsilon,\delta)$-\textbf{differential privacy} condition.
+
+The algorithm $M$ is differentially private if, for any subset $Z \cont  \Ssp$
+
+\begin{align} \label{eq:bited} 
+ & P[M(D \cup 0) \in Z] \le e^{\epsilon}P[M(D \cup 1) \in Z] + \delta \\
+\& & P[M(D \cup 1) \in Z] \le e^{\epsilon}P[M(D \cup 0) \in Z] + \delta 
+\end{align}
+
+Equivalently, the algorithm $M$ is differentially private, if it is $(\epsilon,\delta)$-\textbf{indistinguishable}: 
+\begin{align} \label{eq:bitind} 
+P \left (   e^{-\epsilon} \le \frac{P(M(D \cup 0) = s)}{P(M(D \cup 1) = s)} \le e^{\epsilon} \right ) \ge 1 - \delta, \forall s \in \{0,1,\cdots,n+1\}
+\end{align}
+
+The quantity in parenthesis is referred as  a \textbf{privacy loss ratio} $R$.  For every instance of $D$, one can express the privacy loss ratio for a particular outcome $s$ as:
+\begin{equation} \label{eq:1} 
+R(s|D)= \frac{P(M(D \cup 0) = s)}{P(M(D \cup 1) = s)}  = \frac{P(s|D \cup 0) )}{P(s|D \cup 1)} 
+\end{equation}
+
+Note that \ref{eq:bitind} requires both $R$ and its reciprocal $1/R$ be $\delta$-bounded by $e^\epsilon$. Whereby the first case corresponds to replacing a user bit 1 with 0 bit, and the second is reversed. We shall show the symmetry of both ratios later in the sequel. 
+
+Conditioning on possible values the added bit could generate:
+\begin{align}\label{lem:rs100}
+P(s|D \cup 0) = p \cdot P(s | D ) + q \cdot P( s - 1 | D) 
+\end{align}
+
+Indeed, if $0$ bit is randomized to itself (with probability $p$), then $s$ must be generated by $D$ alone, while if $0$ bit was flipped (with probability $q$) then $D$ must generate $s-1$ total bit sum. Similarly 
+\begin{align}
+P(s|D \cup 1) = p  \cdot P(s -1 | D ) + q \cdot P( s  | D) 
+\end{align}
+
+Combining two conditioning expressions into the privacy loss ratio one arrives to:
+\begin{equation} \label{eq:plratio}
+R(s|D)=  \frac{p \cdot P(s | D ) + q \cdot P( s - 1 | D) } {  p  \cdot P(s -1 | D ) + q \cdot P( s  | D)  } = \frac{ p \frac{P(s | D )}{P(s - 1| D )} + q } { p + q \frac{P(s | D )}{P(s - 1| D )} }
+\end{equation}
+
+Let $\rho(s) = \frac{P(s | D )}{P(s - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $s$.  It's related to $R(s)$ as in:
+\begin{equation} \label{eq:plratio1}
+R(s|D) =  \frac{ p \frac{P(s | D )}{P(s - 1| D )} + q } { p + q \frac{P(s | D )}{P(s - 1| D )} } = \frac{q + p\rho(s)}{p + q\rho(s)}
+\end{equation}
+Let $g(x) = \frac{q + px}{p + qx}$, the function $g$ is increasing over $x>0$, since
+\[ g'(x) = \frac{p-q}{(p+qx)^2} > 0. \]
+Which gives as an important corollary 
+\begin{cor}\label{cr:phr} Properties of monotonicity and extrema established for $\rho(s)$  carry over to $R(s)$ .
+\end{cor}
+ 
+ \begin{lem} \label{lem:rs1}
+The privacy loss ratio $R(s)$ decreases monotonically as $s$ grows, reaching its maximum in $s=0$ and minimum in $s=n$.
+\end{lem}
+\begin{pf}
+ Suppose $D$ contains $m$ set bits, then the distribution of $s$ is a sum of two binomial distributions, and is  a Poisson Binomial distribution.
+\begin{equation}
+ s  \sim Bin(m,p) + Bin(n-m,q)  \label{lem:bpd} 
+ \end{equation}
+ As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
+ \begin{align*}
+ & P(s)^2  > P(s-1) \cdot P(S+1) & \\
+\implies &  \rho(s-1) > \rho(s)  & \\
+\implies & R(s-1) > R(s) & \text{ by } \ref{cr:phr}
+\end{align*}
+\end{pf}
+
+According to corollary \ref{cr:max} there exists a set $S_m$ containing only point-wise distinguishable values of $s$.  Then, by lemma \ref{lem:rs1} such set includes only values from 0 to $k$ for which $R(s) > e^\epsilon$.   This immediately gives us an expression for $(\epsilon,\delta)$-\textbf{differential privacy}  in binary case.
+\begin{lem} \label{lem:dp_bin}
+The algorithm $M$ is $(\epsilon,\delta)$-\textbf{differentially} private if and only if   
+\begin{equation} \label{eq:dp_bin}
+(2pe^\epsilon - 1)P(k | D ) - (e^\epsilon - 1) \sum^{k} _{i=0}P(i|D) \le \delta, \forall k \in \{0,1,\cdots, n\}
+\end{equation}
+\begin{pf}
+Consider probability $P[s \in S_m|D \cup 0]$, suppose $S_m = \{0,1, \cdots, k\}$, then
+\begin{align*}
+ & P[s \in S_m|D \cup 0]   \\
+ = & \sum^k_{i=0} \left [ p P(i | D ) + q P( i - 1 | D) \right ]  \\
+ = & p P(k | D )  + (q+p)P(k-1|D) + (q+p)P(k-2|D) + \cdots + (q+p)P(0|D)  \\
+ = & p  P(k | D )  + \sum_{i=0}^{k-1} P(i|D) 
+\end{align*}
+Similarly
+\[ P[s \in S_m|D \cup 0] = q  P(k | D )  + \sum^{k-1} _{i=0}P(i|D) \]
+
+From here, the $(\epsilon,\delta)$-\textbf{differential privacy} condition fulfills when
+\begin{align}
+P[s \in S_m|D \cup 0] \le e^{\epsilon}P[s \in S_m|D \cup 1] + \delta   \\
+p  P(k | D )  + \sum_{i=0}^{k-1} P(i|D) - e^\epsilon \left ( q  P(k | D )  + \sum^{k-1} _{i=0}P(i|D) \right ) \le \delta \\
+(p - qe^\epsilon)P(k | D ) - (e^\epsilon - 1) \sum^{k-1} _{i=0}P(i|D) \le \delta \\
+(2pe^\epsilon - 1)P(k | D ) - (e^\epsilon - 1) \sum^{k} _{i=0}P(i|D) \le \delta
+\end{align}
+\end{pf}
+\end{lem}
+
+The formula \ref{eq:dp_bin} reveals the very nature of  $(\epsilon,\delta)$-protection for the bit reporting. In essence, it's a difference in PDF and CDF of the underling distribution of $s$.  The left tail probabilities grow as $s$ increases, but so does the cumulative sum of them.  At some point CDF becomes greater than the probability at given $s$, and then all consequent values of $s$ are all pair-wise indistinguishable.  As long as this difference stays under $\delta$, the privacy is preserved.
+
+Despite its simple form, the expression \ref{eq:dp_bin} does not immediately provide a simple way to express $q$ from  $(\epsilon,\delta)$ and the size of the dataset.  A theorem below makes possible to bound $R(s)$ of any distribution of the form  \ref{lem:bpd} with the $R(s)$ of the dataset containing only 0 bits.
+
+\begin{prop} \label{lem:rs3}
+Denote a collections of $n$ bits containing $m$ set bits and $n-m$ zero bits as $D_m$. Further denote the corresponding quantities:
+\begin{itemize}
+\item privacy loss ratio at a particular value $s$ as $R(s|D_m) = \frac{P(s|D_m \cup 0)}{P(s | D_m \cup 1)}$
+\item probability ratio at a particular value $s$ as $\rho(s|D_m) = \frac{P(s|D_m)}{P(s-1|D_m)}$
+\item expected value of $s$ as $\mu_m = p \cdot m + q \cdot (n-m )$
+\end{itemize}
+Choose a distance $l$ such that $l \ge npq$, then 
+\[ \rho[\mu_m - l|D_r] \le \rho[\mu_0 - (l+2)|D_0] \]
+That is, the probability ratio for any collection is bound by the probability ratio of the zero collection. \begin{pf}
+PROOF Is INVOLVED AND WILL BE GIVEN LATER IN APPENDIX.  Max needs to fix Dave's notations, skipping for now.
+\end{pf}
+\end{prop}
+
+From lemma \eqref{lem:rs3} and proposition \ref{lem:rs3} we immediately receive the corollary below that bounds the left tail of the distribution \ref{lem:bpd}
+\begin{cor}\label{cor:rs3}
+For left deviations $l \ge npq$ from the mean the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ zero bits
+\[ R[\mu_m- l|D_m] \le R[\mu_0 - (l+2)|D_0] \]
+\end{cor}
+
+
+We present the properties of a zero valued dataset below along with derivation of the $(\epsilon,\delta)$-bound for such collection, and a formula  to compute the the flipping frequency $q$. We then apply corollary \ref{cor:rs3} to bound an arbitrary set of bits. 
+
+\subsection{properties of zero valued collection}
+Let $D$ consists of $n$ zero bits, the neighboring dataset $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying the algorithm $M$ is a sum of randomized bits $s$. The following relationships hold.
+
+\begin{align}
+\mu = E(s) = q \cdot n \\
+P(s=i | D ) = \binom{n}{i}q^ip^{n-i} \\
+P(s=i | D' ) = \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1}  \\
+R(i)  = \frac{P(s=i | D)}{P(s=i | D')} = \frac{ \binom{n}{i}q^ip^{n-i} }{  \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1} } \\
+R(i) =  \frac{1} { \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} }
+\end{align}
+
+By applying Chernoff bound to the distribution of $s$, we receive
+ \begin{align}
+P(|s - \mu| > t\mu) \le 2 e^{- \frac{t^2\mu}{3}}
+\end{align}
+
+Setting $t=\sqrt{\frac{3}{\mu} ln\frac{2}{\delta}}$ one arrives to
+ \begin{align}
+P \left (|s - \mu| >\sqrt{3nq \cdot ln\frac{2}{\delta}} \right ) \le \delta
+\end{align}
+ 
+Setting $l=\sqrt{3nq \cdot ln\frac{2}{\delta}}$, one is ensured that values of $P(s \in [\mu - l, \mu + l ]) \ge 1- \delta$. Conditioned on  $s \in [\mu - l, \mu + l ]$ we  bound the privacy loss ratio $R(i)$ in this interval in the following way:
+\begin{align}
+  && e^\epsilon \ge R(i) \ge e^{-\epsilon} \\ 
+ \implies &&  e^{-\epsilon} \le \frac{1}{R(i)} \le e^\epsilon \\
+  \implies &&  e^{-\epsilon} \le \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \le e^\epsilon
+\end{align}
+
+We first bound the left side of the inequality, setting $i = \mu - l$
+\begin{align}
+\frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{n-(\mu-l)}{n}\frac{q}{p} + \frac{\mu-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{n-(nq-l)}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+\frac{np + l}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+q + \frac{l}{n}\frac{q}{p} +  p - \frac{l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
+1 - \frac{l}{n} \frac{p-q}{pq}  \ge e^{-\epsilon}. \\
+l \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q}  
+\end{align}
+
+Plugging expression for $l$ one arrives to the bound of $q$
+\begin{align}
+\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q} \\
+ \frac {(p - q)^2} {q \cdot p^2} \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
+ \text{ since }  \frac {(p - q)^2} { p^2} \le 1 \text{ , then }  \\
+  \frac {(p - q)^2} {q \cdot p^2} \le \frac{1}{q}  \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
+  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 } \label{lem:rs201}
+\end{align}
+
+In a similar fashion, one arrives to the right side bound
+\begin{align}
+i = \mu + l \\
+\frac{l}{n} \frac{p-q}{pq}  \le e^\epsilon - 1 \\
+\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ e^\epsilon - 1  \right ] \frac { npq}{p - q} \\
+  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ e^{\epsilon} - 1\right ]^2 }  \label{lem:rs202}
+\end{align}
+
+
+Since $e^{\epsilon} - 1 \ge 1 - e^{-\epsilon}$, if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met, which leads to the following lemma
+
+ \begin{lem} \label{lem:rs203}
+The shuffling algorithm $M$ on a collection of $n$ zero bits is $(\epsilon,\delta)$-\textbf{differentially private} when the flipping frequency $q$ of the randomization procedure $\cR$ satisfy \eqref{lem:rs201}.
+ \begin{align*}
+  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }
+  \end{align*}
+\end{lem}
+
+\subsection{Properties of an arbitrary distribution of the form \ref{lem:bpd}}
+
+\subsubsection{Symmetry}
+
+Consider a zero collection of $D_0$ of n zero bits, its distribution is  binomial $s \sim Bin(n,q)$.  The distribution for $D_n$ - a collection of $n$ set bits, is also binomial $s \sim Bin(n,p)$. These two distributions are mirror images of each other, which follows directly from the binomial probabilities for each collection, hence the corollary.
+ \begin{cor}\label{cor:binsym}
+ A binomial distribution with success probability $q$ is a mirror image of a binomial distribution with success probability $p=1-q$
+ \begin{pf}
+ \begin{align*}
+& P(s=i | D_0) = \binom{n}{i} q^ip^{n-i} \\
+&  P(s=n-i | D_n) = \binom{n}{n-i} p^{n-i} q^i \\
+&  \binom{n}{n-i} = \binom{n}{i}  \\
+\implies & P(s=i | D_0) = P(s=n-i | D_n)
+ \end{align*}
+ \end{pf}
+ \end{cor}
+ 
+ This property extends to each $D_m$ per the corollary  below.
+ \begin{cor}\label{cor:sym}
+Each distribution $D_m$, where $m \le n/2$, has a symmetrical mirror distribution $D_{n-m}$. Where probabilities are related as below.
+\[ P(s=i | D_m) = P(s=n-i | D_{n-m}) \]
+\begin{pf}
+Split $D_m$ into two sets $r$ (which contains $m$ set bits), and $z$ (which contains $n-m$ zero bits).  The probability $P(s=i | D_m)$ can be written as a sum of conditional probabilities of generating certain number of success from $r$ snd $z$.
+ \begin{align*}
+ P(s=i | D_m) =  \sum_{j=0}^{i} P(s=j | r) P(s = i-j | z)
+ \end{align*}
+ The collection $D_{n-m}$ again contains two sets - $r'$ with $m$ zero bits, and $z'$ with $n-m$ set bits, which sets have mirror distributions of $r$ snd $z$. Hence
+  \begin{align*}
+ & P(s=n - i | D_{n-m}) =  \sum_{j=0}^{i} P(s= m - j | r') P(s = n - m - (i-j) | z') \\
+ & P(s=j | r) = P(s= m - j | r')  \\
+ & P(s = i-j | z) = P(s = n - m - (i-j) | z') \\
+ \implies &   \sum_{j=0}^{i} P(s=j | r) P(s = i-j | z) = \sum_{j=0}^{i} P(s= m - j | r') P(s = n - m - (i-j) | z') \\
+ \implies & P(s=i | D_m)  = P(s=n - i | D_{n-m})
+ \end{align*}
+\end{pf}
+\end{cor}
+
+
+\subsubsection{Chernoff bounds of an arbitrary distribution }
+
+This section proves that the Chernoff bound for zero valued collection is also valid to an arbitrary collection of bits.  That is, for any collection of $n$ bits containing $m$ set bits the following holds.
+\[ P(|s - \mu_m| > t\mu_m) \le 2 e^{- \frac{t^2\mu_0}{3}}  = 2 e^{- \frac{t^2nq}{3}} \]
+
+\begin{prop} \label{lem:zleft}
+Chernoff right tail bound for the distribution $P(s=i|D_0)$ holds for any distribution $P(s=i|D_m)$
+\begin{pf}
+Recall that the right distribution tail is bounded by its moment generating function, hence for any $D_m$
+ \begin{align}
+& P(s  > (1+\alpha)\mu_m | D_m)  \le \frac{\E(e^{ts}|D_m)}{e^{t(1+\alpha)\mu_m}} \\
+ & \E(e^{ts}|D_m) = (q +pe^{t})^m(p+qe^{t})^{n-m} \\
+ \implies & P(s  > (1+\alpha)\mu_m | D_m)  \le \frac{ (q +pe^{t})^m(p+qe^{t})^{n-m}}{e^{t(1+\alpha)\mu_m}}. \label{eq:cbd}
+ \end{align}
+ Taking the ratio of the right side of the equality for $D_0$ and $D_m$
+ \begin{align}
+  \frac{ e^{-t(1+\alpha)\mu_0} (p+qe^{t})^n }{ e^{-t(1+\alpha)\mu_m} (q +pe^{t})^m(p+qe^{t})^{n-m} } & = \\
+  e^{t(1+\alpha)(\mu_m - \mu_0)} \left ( \frac{p+qe^{t} } { q+pe^{t} } \right )^m
+\end{align}
+ 
+ Chernoff right bound is obtained by bounding \ref{eq:cbd} at $t=ln(1+\alpha)$ , at which value the ratio above resolves to
+  \begin{align*}
+ (1+\alpha)e^{(1+\alpha)(\mu_m - \mu_0)} \left ( \frac{p+q(1+\alpha) } { q+p(1+\alpha) } \right )^m & = \\
+ (1+\alpha)e^{(1+\alpha)m(p - q)} \left ( \frac{1+q\alpha } { 1+ p\alpha} \right )^m  & = \\
+  (1+\alpha) \left ( e^{1+\alpha} e^{p-q} \frac{1+q\alpha } { 1+ p\alpha} \right )^m
+ \end{align*}
+ 
+Note that since $\alpha > 0$, $p>q$ and $p+q=1$, the expression in parenthesis is always greater than $e$.
+  \begin{align*}
+ & e^{p-q} > 1 \\
+ & \frac{1+q\alpha } { 1+ p\alpha}  \ge \frac{1} { 1+ \alpha}  \\
+ \implies & e^{1+\alpha} e^{p-q} \frac{1+q\alpha } { 1+ p\alpha}  > \frac{ e^{1+\alpha} } { 1 + \alpha}  > e \\
+ \implies  & (1+\alpha) \left ( e^{1+\alpha} e^{p-q} \frac{1+q\alpha } { 1+ p\alpha} \right )^m > 1 \\
+  \implies & \frac{\E(e^{ts}|D_0)}{e^{t(1+\alpha)\mu_0}} > \frac{\E(e^{ts}|D_m)}{e^{t(1+\alpha)\mu_m}}
+  \end{align*}
+  
+ Hence,  the Chernoff right tail bound for the distribution $D_0$ also bounds right tail distribution of any $D_m$.
+\end{pf}
+\end{prop}
+
+\begin{prop} \label{lem:zright}
+Chernoff left tail bound of $D_n$ holds for any $D_m$
+\begin{pf}
+ The left tail of $D_n$ distribution is the right tail of $D_0$ distribution.  Should there exists $D_m$ which left tail not bound by the Chernoff bound of $D_n$, then, by corollary \ref{cor:sym},  there exists a distribution $D_{n-m}$ which right tail is not bound by the Chernoff bound of $D_0$, which contradicts proposition \ref{lem:zleft}
+\end{pf}
+\end{prop}
+
+Since distributions of $D_0$ and $D_n$ are symmetrical the symmetrical bound of $D_0$ also applies to $D_n$.  Then by two propositions above, both tails are bound by either $D_0$ or $D_n$ bounds, which finally gives the desired theorem. 
+
+\begin{prop} \label{lem:bound}
+Any distribution $D_m$ is bounded by the Chernoff bound of $D_0$
+ \begin{align}
+P(|s - \mu_m| > t\mu_m) \le 2 e^{- \frac{t^2\mu_0}{3}}  = 2 e^{- \frac{t^2nq}{3}} 
+\end{align}
+\end{prop}
+
+\subsubsection{Bounding privacy loss for an arbitrary distribution}
+
+Due to the distributional symmetry (corollary \ref{cor:sym}), the reciprocal of the privacy loss ratio $\frac{1}{R(s)}$ behaves like a mirror-image of $R(s)$.  It monotonically grows with $s$, reaches maximum at $n$, and the corollary \ref{cor:rs3} holds for collection $D_n$ with respect to $\frac{1}{R(s)}$.  
+\begin{cor}
+For the right deviations $l \ge npq$ from the mean the reciprocal of privacy loss ratio for the collection of $n$ bits is bounded by the reciprocal of the privacy loss ratio for the collection of $n$ zero bits
+\[ \frac{1}{R[\mu_m + l|D_m]} \le \frac{1}{R[\mu_n + (l+2)|D_n]} \]
+\end{cor}
+
+\newpage 
+
+
+
+
+proposition \ref{lem:rs3} 
+ \begin{lem} \label{lem:rs204}  Bit flipping randomization procedure $\cR$ applied to a collection of $n$ set bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
+ \begin{align*}
+  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }
+\end{align*}
+\end{lem}
+
+The next corollary bounds the right tail of distribution
+\begin{cor}
+For the right deviations $l \ge npq$ from the mean, the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ set bits
+\[ R[\mu_r + l|D_r] \le R[\mu_n + l+2 |D_n] \]
+\end{cor}
+\begin{pf}
+TODO - proving by symmetry between $D_0$ and $D_n$ distributions. 
+\end{pf}
+
+Using the bound \eqref{lem:rs201} and the fact that all-zero and all-set bit collections provide identical bounds to the privacy loss ratio for the left and the right side of distribution, we finally arrive to an important theorem.
+\begin{prop}
+randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, when the flipping frequency $q$ obeys the bound below
+\begin{equation} \label{eq:fullbound}
+q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon} - 2 \frac{p-q}{npq} \right ]^2 }
+\end{equation}
+\end{prop}
+Note that the term $2 \frac{p-q}{npq}$ appeared due to $l+2$ correction of both corollaries above.  For sufficiently large $n$, this term diminishes to zero, which simplifies the bound to the form of lemma  \eqref{lem:rs203}
+
+\section{Clear Reports}
+
+Assume that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We will have each user donate his data $\bbx_i$. Further, we will inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake. We call this algorithm 
+\[
+M(\bbx_1,  \dots , \bbx_n) = \pi (\bbx_1, \dots , \bbx_n, \bbz_1, \dots , \bbz_m) \text{ where } \pi \text{ permutes its elements}. 
+\]
+We then compute the privacy loss of such an algorithm $M$. Equivalently, we could write the output as a histogram over the entire database, as in $M(\bbx_1,  \dots , \bbx_n) = \sum^n_{i=1} \bbx_i + \sum^m_{j=1} \bbz_j$. Note that rather than inject random noise to these counts, as in central differential privacy, we want to consider \emph{anonymized differential privacy}, where data records are transmitted through a mix net to break any identifiers with each data entry and the server sees the aggregated records in some random order. In this model, there is no trusted server that injects noise to ensure DP. Rather, the user needs to only trust the anonymizer to shuffle real and fake records.
 
 We then consider the privacy loss for a general mechanism $M$. Consider an outcome $h \in \N^d$, which is a histogram over the full dataset domain and neighboring datasets $\bbx$ and $\bbx'$.
 
+\begin{align}
+L(h) = \log \left ( \frac{\Pr[M(\bbx) = h]}{\Pr[M(\bbx') = h]} \right )
+\end{align}
 
-Suppose $\Ssp$ is finite.  
-If  which is common in cases where the transcript involves integer counts, then the distribution of the transcript $A(\xv)$ can be represented using its pmf $\P[A(\xv) = s]$ for $s \in \Ssp$
+If we can bound $L(h)$ by $\epsilon$ for any outcome $h$ then we say that $M$ is $\epsilon$-DP. If we can bound $L(h)$ by $\epsilon$ with probability at least $1 - \delta$ where the randomness is over $h \sim M(\bbx)$, then we say that $M$ is $(\epsilon, \delta)$-DP.
+
+We now focus on $M$ being the mechanism described above, which injects $m$ fake reports. We can then write the privacy loss in the following way where we assume, without loss of generality, that $\bbx$ and $\bbx'$ only differ in the first record, i.e. $\bbx_i = \bbx'_i$ for all $i \ne 1$.
+
+\begin{align*}
+L(h) &= \log \left ( \frac{\Pr[x_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]}{\Pr[x'_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]} \right ) \\
+&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \bbx_1 - \sum^n_{i=2} \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h - \bbx'_1 - \sum^n_{i=2} x_i ]} \right )  \\
+&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \sum^n_{i=1}  \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h  - \sum^n_{i=1} \bbx_i  - (\bbx'_1 - \bbx_1) ]} \right )
+\end{align*}
+
+We denote  $\hat{h}$ to be the histogram of the fake records only $\hat{h} = h - \sum^n_{i=1} \bbx_i$, with respective counts in each histogram bin $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_d\}$.  Then the privacy loss ratio can be written as:
+
+\begin{align*}
+L(h) =  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h}  + \bbx_1 - \bbx'_1) ]} \right )
+\end{align*}
 
 
 
+The one-hot vectors $\bbx_1$  and $\bbx'_1$ may only differ in two positions, let these positions be $\ell$ and $\ell'$. 
+$\bbx_1$ and $\bbx'_1$ must have opposite bit-values in positions $i$ and $i'$ (otherwise these vectors are identical). 
+Without loss of generality assume $x_{1,\ell} = 1, x_{1,\ell'} = 0$ and $x'_{1,\ell} = 0, x'_{1,\ell'} = 1$.  
+Adding $\bbx_1$ adds 1 to $h_i$, while subtracting $\bbx'_1$ removes 1 from $h_\ell'$.
+Hence,  if $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d\} $, then  $\hat{h} + \bbx_1 -\bbx'_1 =  \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} -1, \dots, \hat{h}_d\} $.
 
-\section{Reporting randomized bits in the mix-net model}
+Further, note that the count the fake bits $\hat{h}_\ell = \sum^m_{j=1} \bbz_{j,\ell}$ is a binomial distribution $h_\ell \sim \text{Bin}(m, 1/d)$, and the distribution of the fake bit counts across the bins takes the multinomial form $ \hat{h} \sim \text{Multinomial}(m,(1/d,\cdots, 1/d))$. We then aim to bound the following quantity.
+
+\begin{align*}
+ L(h) &= \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h} + \bbx_1 - \bbx'_1]} \right ) \\
+ & = \log  \left ( \frac{ {m \choose \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d}}{ { m \choose hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} - 1, \dots, \hat{h}_d}} \right ) \\
+ & = \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) 
+\end{align*}
+
+It must be stressed that for a given pair of $(\bbx_1, \bbx'_1)$, the corresponding position pair $(\ell,\ell')$ where their bits are different is fixed, and the privacy loss only surfaces while observing the counts in the corresponding histogram bins $(h_\ell, h_{\ell'})$.  It's entirely possible to see high ratio between counts in some other histogram bins, but it wouldn't contribute to the privacy loss for a concrete pair $(\bbx_1, \bbx'_1)$.  This observation allows us to focus only on a single pair of the histogram bins, ignoring the rest of the histogram as immaterial.  
+
+By applying a Chernoff bound, we have a bound (symmetric for the upper and lower tail) for the sum of the fake bits in any bin $\hat{h}_k = \sum^m_{j=1} z_{j,k},  k \in [d]$
+
+\begin{align*}
+ \Pr \left [ \left | \hat{h}_k - \frac{m}{d} \right | > t \frac{m}{d} \right ]  \le 2 e^{- \frac{m}{d} \frac{t^2}{3}}, \qquad \text{ for  } 0 < t < 1.
+\end{align*}
+
+Choose $t$ to fit the expression below, hence $t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }$.
+%\begin{align}
+%2e^{- \frac{m}{d} \frac{t^2}{3}} = \frac{\delta}{2}  \\
+%- \frac{m}{d} \frac{t^2}{3} = \log{\frac{\delta}{4}}  \\
+% \frac{m}{d} \frac{t^2}{3} = \log{\frac{4}{\delta}} \\
+% t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }
+%\end{align}
+Using this expression for $t$ turns our Chernoff bound into the following,
+ 
+ \begin{align}
+ Pr \left [ \left | \bar{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \frac{\delta}{2}
+\end{align}
+
+Given any pair of the histogram bins at positions $(\ell,\ell')$, the probability of observing large deviation from the mean in at least one bin obeys the unions bound.
+\[
+\Pr \left [ \max_{k \in (\ell,\ell')} \left | \hat{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \delta
+\]
+
+We then condition on the event that both counts $\hat{h}_l$ or $\hat{h}_{l'}$ fall in the interval $m/d \pm \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}$, which event occurs with probability at least $1 - \delta$.  
+Conditioned on there being the given number of fake records, we can upper bound the privacy ratio $L(h)$
+
+ \begin{align}
+ L(h) =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \le \log  \left ( \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \le \epsilon 
+\end{align}
+
+From the above, we then get a condition on the number of fake records, m, to ensure DP.
+ \begin{align*}
+& \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^\epsilon  \\
+\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) - 1 \ge 0 \\
+\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}} \left ( \sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1) \right ) \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  \ge 0 \\
+\implies &\sqrt{  \frac{m}{d}}  \ge  \frac { \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  } { e^\epsilon - 1 } \\
+\implies & \frac{m}{d}  \ge 3\log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2
+\end{align*}
+
+As for the lower bound of $L(h)$, it's met if the upper bound is met.
+ \begin{align*}
+ L(h) & =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \ge \log  \left ( \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \ge - \epsilon  \\
+\implies &  \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \ge e^{-\epsilon} \\
+ \implies &  \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} \le e^{\epsilon}  \\
+\implies &   \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} < \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^{\epsilon} 
+\end{align*}
+
+
+%%%%%%%%%%%%%%%%%%% - but flipping with fake records
+
+\section{Fake records and bit flipping}
+
+We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
+\[
+M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
+\]
+
+Without los of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive a neighboring data set $\bbx'$.  The outcome is a histogram $g \in \N^d$ containing sums of randomized bits in each dimension, and the privacy loss:
+
+\begin{equation} \label{eq:lgbound}
+L(g) = \log \left ( \frac{\Pr[M_r(\bbx) = g]}{\Pr[M_r(\bbx') = g]} \right )
+\end{equation}
+
+The combined set $\bbx + \bbz$ gives raise to a histogram $h \in \N^d$ received by applying the before discussed mechanism M (clear true records plus fake records).  Hence, the $Pr [ M_r(x) = g ]$ can be written as a sum of probabilities over the domain of $h$:
+
+ \begin{align*}
+ & Pr [ M_r(x) = g ] = \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot Pr [ g | h ]  \\
+\implies &  L(g) =  \log  \left ( \frac{  \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   }{    \sum_{h' \in \N^d}  Pr \left [  M(\bbx') = h' \right ] \cdot   Pr[ g | h']   } \right )
+\end{align*}
+
+Noting that
+\[
+ Pr \left [  M(\bbx) = h \right ]  =  Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]
+ \] 
+ 
+And regrouping  the privacy loss ratio to have summands with same $Pr \left [  M(\bbx) = h \right ]$ in identical positions in numerator and denominator, and applying \eqref{lem:rsbound} we have:
+ \begin{align*}
+& \log \left ( \max_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \text{ , and } \\
+& L(g) \ge  log \left ( \min_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right ) \\
+\end{align*}
+
+Probabilities $Pr \left [  M(\bbx) = h \right ]$ and $ Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]$ cancel each other out in each ratio, hence giving us the bounds of the privacy loss over domain of $h$ .
+
+\begin{align*}
+\log \left ( \max_{h \in \N^d} \left ( \frac{  Pr [ g | h ]   } { Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \ge  log \left ( \min_{h \in \N^d}  \left ( \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right )
+\end{align*}
+
+Since bits are flipped independently, the probability of finding certain number of bits in a particular histogram bin $g_l$ depends only on how many not-yet-randomized set bits there are in the dimension $l$, that is the value of $h_l$.  Such independence allows to re-write $Pr [ g | h]$ as a product of probabilities for each dimension.
+ \[
+Pr [ M_r(x) = g ] = Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] = \prod_{i=1}^d Pr[ g_i | h_i] 
+\]
+
+Without loss of generality assume that $\bbx_1$ and $\bbx'_1$ differ in the first and second positions, that is $\bbx_{1,1} = 1, \bbx_{1,2} = 0$ and $\bbx'_{1,1} = 0, \bbx'_{1,2} = 1$, then
+\begin{align*}
+ & h  - \bbx_1 + \bbx'_1 = \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} \\
+ \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{ Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] } { Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} ]  } \\
+  \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{  Pr[ g_1 | h_1] Pr[ g_2 | h_2] \prod_{i=3}^d Pr[ g_i | h_i]  } {  Pr[ g_1 | h_1 - 1] Pr[ g_2 | h_2 + 1] \prod_{i=3}^d Pr[ g_i | h_i]  }  \\
+   \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } =   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  } 
+\end{align*}
+
+Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds become:
+\begin{align*}
+& \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right ) \right ) \ge L(g) \ge  \min_{h \in \N^d}  \left ( \log \left (  \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }   \right ) \right ) \\
+\implies &  \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \max_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right) \ge L(g) \text{ , and } \\
+&  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
+\end{align*}
+
+Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  
+
+Suppose that $r$ fake records (out of $m$) happened to have zero bits in the affected dimensions ($1$ and $2$).  We will show later that $r \to m$,  for  large $d$.  Then we are bounding the product of privacy loss ratios in the affected dimensions to stay between $e^{-\epsilon}$ and $e^\epsilon$ with probability $1-\delta$.
+\begin{align} \label{lem:fk101}
+P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta
+\end{align}
+
+We achieve condition of \eqref{lem:fk101} by bounding the ratio in each dimension separately.  Suppose that the following holds
+\begin{align*} \label{lem:fk101}
+&& P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1] }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 \\
+\text{and} && P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 
+\end{align*}
+
+Then, by the union bound, the combined probability of either ratio falling outside its bound is $\delta$, and with probability $1-\delta$, both ratios stay between $e^{-\frac{\epsilon}{2}}$ and $e^\frac{\epsilon}{2}$, hence the product of the ratios is bounded in $[ e^{-\epsilon}, e^\epsilon]$.   
+
+\begin{prop}
+\end{prop}
+
+
+%%% Bounding ratio of sums by max ratio of terms
+
+\section{Appendix B - proof of zero collection maxiality}
 
 It is instructive to first consider the case where each record in the collection consists of a single bit, as the expressions simplify considerably.
 
@@ -441,424 +1035,6 @@ contradicting our initial choice of $\delta$.
 \end{pf}
 
 
-\section{Reporting randomized bits in the mix-net model}
-
-There are $n+1$ single bit records being sent through a shuffler.  Before sending, each bit is randomized with $\cR$ - that is, flipped with probability $q$  and kept unchanged with probability $p=1-q$.  the outcome $S$ is the sum of randomized bits. Let $D$ be a set of $n$ bits and construct a neighboring pair of datasets by adding to $D$ a set bit and a 0 zero bit.  Then the privacy loss ratio at any given value of $S$ is expressed as:
-\begin{equation} \label{eq:} 
-R(S|D)= \frac{P(S|D \cup 0)}{P(S|D \cup 1)}
-\end{equation}
-
-Each probability allows conditioning on possible values the added bit could generate:
-\begin{align}\label{lem:rs100}
-P(S|D \cup 0) = p \cdot P(S | D ) + q \cdot P( S - 1 | D) 
-\end{align}
-
-Indeed, if $0$ bit is randomized to itself (with probability $p$), then $S$ must be generated by $D$ alone, while if $0$ bit was flipped (with probability $q$) then $D$ must generate $S-1$ total bit sum. Similarly 
-\begin{align}
-P(S|D \cup 1) = p  \cdot P(S -1 | D ) + q \cdot P( S  | D) 
-\end{align}
-
-Combining two conditioning expressions into the privacy loss ratio one arrives to:
-\begin{equation} \label{eq:plratio}
-R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  } = \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} }
-\end{equation}
-
-Let $\rho(S) = \frac{P(S | D )}{P(S - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $S$.  It's related to $R(S)$ as in:
-\begin{equation} \label{eq:plratio1}
-R(S|D) =  \frac{ p \frac{P(S | D )}{P(S - 1| D )} + q } { p + q \frac{P(S | D )}{P(S - 1| D )} } = \frac{q + p\rho(S)}{p + q\rho(S)}
-\end{equation}
-Let $g(x) = \frac{q + px}{p + qx}$, the function $g$ is increasing over $x>0$, since
-\[ g'(x) = \frac{p-q}{(p+qx)^2} > 0. \]
-Therefore, properties of monotonicity and extrema established for $\rho(S)$  carry over to $R(S)$ as well.
- 
- If  $D$ contains $m$ set bits, then the distribution of $S$ is a sum of two binomial distributions (a Poisson Binomial distribution): 
- \[ S  \sim Bin(m,p) + Bin(n-m,q) \]
- 
- \begin{lem} \label{lem:rs1}
-When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ decreases monotonically as $S$ grows, reaching its maximum in $S=0$ and minimum in $S=N$.
-\end{lem}
-\begin{pf}
- As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
- \begin{align*}
- & P(S)^2  > P(S-1) \cdot P(S+1) \\
-\implies &  \rho(S-1) > \rho(S) \\
-\implies & R(S-1) > R(S)
-\end{align*}
-\end{pf}
-
- \begin{lem} \label{lem:rs1}
-When 0-bit is replaced with a set bit, the resulting privacy loss ratio $R(S)$ decreases monotonically as $S$ grows, reaching its maximum in $S=0$ and minimum in $S=N$.
-\end{lem}
-\begin{pf}
- As show by Wang, Y. H. (1993). "On the number of successes in independent trials", for any Poisson Binomial distribution, the probability of consecutive values are related as follows
- \begin{align*}
- & P(S)^2  > P(S-1) \cdot P(S+1) \\
-\implies &  \rho(S-1) > \rho(S) \\
-\implies & R(S-1) > R(S)
-\end{align*}
-\end{pf}
-
-\begin{lem} \label{lem:rs3}
-Denote a collections of $n$ bits containing $r$ set bits and $n-r$ zero bits as $D_r$. Further denote the corresponding quantities:
-\begin{itemize}
-\item privacy loss ratio at a particular value $S$ as $R(S|D_r) = \frac{P(S|D_r)}{P(SD'_r)}z$
-\item probability ratio at a particular value $S$ as $\rho(S|D_r) = \frac{P(S|D_r)}{P(S-1|D_r)}$
-\item expected value of $S$ as $\mu_r = p \cdot r + q \cdot (n-r)$
-\end{itemize}
-Choose a distance $l$ such that $l \ge npq$, then 
-\[ \rho[\mu_r - l|D_r] \le \rho[\mu_0 - (l+2)|D_0] \]
-That is, the probability ratio for any collection is bound by the probability ratio of the zero collection. 
-\end{lem}
-\begin{pf}
-PROOF IS INVOLVED AND WILL BE GIVEN LATER IN APPENDIX.  Max needs to fix Dave's notations, skipping for now.
-\end{pf}
-
-From lemma \eqref{lem:rs3} immediately follow corollaries below
-\begin{cor}
-For left deviations $l \ge npq$ from the mean the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ zero bits
-\[ R[\mu_r - l|D_r] \le R[\mu_0 - (l+2)|D_0] \]
-\end{cor}
-\begin{pf}
-From  \eqref{eq:plratio1} \[ R(S|D_r) = \frac{q + p\rho_r(S)}{p + q\rho_r(S)} \] 
-Given that $\rho_r(S) \le \rho_0(S)$, we have 
-\begin{align*}
-R(S|D_r) = \frac{q + p\rho_r(S)}{p + q\rho_r(S)} \le R(S|D_0) = \frac{q + p\rho_0(S)}{p + q\rho_0(S)} \\
-qp + q^2\rho_0(S) + p^2 \rho_r(S) + pq \cdot \rho_0(S) \cdot \rho_r(S) \le qp + p^2\rho_0(S) + q^2 \rho_r(S) + pq \cdot \rho_0(S) \cdot \rho_r(S) \\
-\rho_r(S) (p^2 - q^2) \le \rho_0(S) (p^2 - q^2)  \\
-\rho_r(S) \le \rho_0(S)
-\end{align*} 
-\end{pf}
-
-The next corollary bounds the right tail of distribution
-\begin{cor}
-For right deviations $l \ge npq$ from the mean, the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ set bits
-\[ R[\mu_r + l|D_r] \le R[\mu_n + l+2 |D_n] \]
-\end{cor}
-\begin{pf}
-TODO - proving by symmetry between $D_0$ and $D_n$ distributions. 
-\end{pf}
-
-Using the bound \eqref{lem:rs201} and the fact that all-zero and all-set bit collections provide identical bounds to the privacy loss ratio for the left and the right side of distribution, we finally arrive to an important theorem.
-\begin{prop}
-randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, when the flipping frequency $q$ obeys the bound below
-\begin{equation} \label{eq:fullbound}
-q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon} - 2 \frac{p-q}{npq} \right ]^2 }
-\end{equation}
-\end{prop}
-Note that the term $2 \frac{p-q}{npq}$ appeared due to $l+2$ correction of both corollaries above.  For sufficiently large $n$, this term diminishes to zero, which simplifies the bound to the form of lemma  \eqref{lem:rs203}
-
-\begin{lem} \label{lem:rs2}
-If randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, it's also $(\epsilon, \delta)$-private on a collection of $n+1$ bits.  In other words, if $n$ bit are protected with flipping frequency $q$, then all collections of greater size are also protected with same $q$. 
-\end{lem}
-\begin{pf}
-Let $D_n$ be a collection of $n$ bits and derive a neighboring collection $D'_n$ by replacing a single bit.  Since $\cR$ is $(\epsilon, \delta)$-private for $n$ bits, then for any set of outcomes $W$
-\begin{align}\label{lem:rs101}
- && P(\cR(D'_n) \in W) \le \exp(\epsilon)P(\cR(D_n) \in W) + \delta \\
- \implies && P(\cR(D'_n) \in W) - \exp(\epsilon)P(\cR(D_n) \in W) \le \delta
-\end{align}
- 
- Now add a 0 bit to both $D_n$ and $D'_n$.  The probability of the extended collections $D_{n+1}$ and $D'_{n+1}$ generating a particular outcome $S$ is given by  \eqref{lem:rs100}
- \begin{align}\label{lem:rs102}
-P(\cR(D_{n+1}) = S) = P(\cR(D_n)=S) \cdot p + P(\cR(D_n)=S-1) \cdot q
-\end{align}
-
-Assume that $\cR(D_{n+1})$ is not $(\epsilon, \delta)$-private, then there must exists a set $W'$ such that 
-\begin{align}\label{lem:rs103}
-P(\cR(D'_{n+1}) \in W') > \exp(\epsilon)P(\cR(D_{n+1}) \in W') + \delta
-\end{align}
- 
-Suppose $W'$ contains $r$ distinct outcomes $W'=\{S_1, S_2, \cdots, S_r\}$, then
-\begin{align}
-P(\cR(D_{n+1}) \in W') = \sum_i^r P( \cR(D_{n+1})  = S_i) \\
-=  \sum_i^r \left [ P( \cR(D_{n})  = S_i) + P(\cR(D_n)=S_i-1) \cdot q \right ]  \text{ by  \eqref{lem:rs102} } \\
-= p \sum_i^r P( \cR(D_{n})  = S_i)  + q \sum_i^r  P( \cR(D_{n})  = S_i - 1)  \label{lem:rs103}
-\end{align}
- 
- Define a set $W'' = \{S_1 - 1, S_2 - 1, \cdots, S_r - 1\}$, then \eqref{lem:rs100} can be rewritten in the form membership probabilities.  
- \begin{align}
-P(\cR(D_{n+1}) \in W') = p \sum_i^r P( \cR(D_{n})  = S_i)  + q \sum_i^r  P( \cR(D_{n})  = S_i - 1) \\
-= p \cdot P(\cR(D_n) \in W') + q \cdot P(\cR(D_n) \in W'')
-\end{align}
-
-In the same fashion we arrive to the expression of $P(\cR(D'_{n+1}) \in W')$
- \begin{align}
-P(\cR(D'_{n+1}) \in W') = p \cdot P(\cR(D'_n) \in W') + q \cdot P(\cR(D'_n) \in W'')
-\end{align}
-
-Plugging the above probabilities into  \eqref{lem:rs103}, we arrive to an inequality that must hold if $\cR(D_{n+1})$ is not $(\epsilon, \delta)$-private.
- \begin{align}
- P(\cR(D'_{n+1}) \in W') > \exp(\epsilon)P(\cR(D_{n+1}) \in W') + \delta \\
-P(\cR(D'_{n+1}) \in W') - \exp(\epsilon)P(\cR(D_{n+1}) \in W') > \delta \\
-p \cdot P(\cR(D'_n) \in W') + q \cdot P(\cR(D'_n) \in W'') - p \cdot P(\cR(D_n) \in W') - q \cdot P(\cR(D_n) \in W'') > \delta \\
-p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] > \delta   \label{lem:rs105}
-\end{align}
-
-However \eqref{lem:rs101} implies that 
- \begin{align*}
-&& \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] \le \delta \\
-\text{and} &&  \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta \\
-\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le p\delta + q\delta \\
-\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta (p+q) \\
-\implies && p \left [ P(\cR(D'_n) \in W') - P(\cR(D_n) \in W') \right ] + q \left [ P(\cR(D'_n) \in W'') - P(\cR(D_n) \in W'') \right ] \le \delta
-\end{align*}
-
-Which contradicts  \eqref{lem:rs105} and proves the lemma.
-\end{pf}
-
-
-\subsection{properties of zero valued collection}
-A homogenous collection of $n$ zero bits is an important spacial case, hence we present findings for it below.  Let $D$ consists of $n$ zero bits, then the neighbor $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying procedure c is a sum of randomized bits $S$. The following relationships hold.
-
-\begin{align}
-\mu = E(S) = q \cdot n \\
-P(S=i | D ) = \binom{n}{i}q^ip^{n-i} \\
-P(S=i | D' ) = \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1}  \\
-R(i)  = \frac{P(s=i | D')}{P(s=i | D)} = \frac{ \binom{n}{i}q^ip^{n-i} }{  \binom{n-1}{i}q^{i+1}p^{n-1-i} +   \binom{n-1}{i-1}q^{i-1}p^{n-i+1} } \\
-\frac{1}{R(i)} =  \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q}
-\end{align}
-
-By applying Chernoff bound to the distribution of $s$, we receive
- \begin{align}
-P(|S - \mu| > t\mu) \le 2 e^{- \frac{t^2\mu}{3}}
-\end{align}
-
-Setting $t=\sqrt{\frac{3}{\mu} ln\frac{2}{\delta}}$ one arrives to
- \begin{align}
-P \left (|S - \mu| >\sqrt{3nq \cdot ln\frac{2}{\delta}} \right ) \le \delta
-\end{align}
- 
-Setting $l=\sqrt{3nq \cdot ln\frac{2}{\delta}}$, one is ensured that values of $P(S \in [\mu - l, \mu + l ]) \ge 1- \delta$. Conditioned on  $S \in [\mu - l, \mu + l ]$ we  bound the privacy loss ratio $R(i)$ in this interval in the following way:
-\begin{align}
-  && e^\epsilon \ge R(i) \ge e^{-\epsilon} \\ 
- \implies &&  e^{-\epsilon} \le \frac{1}{R(i)} \le e^\epsilon \\
-  \implies &&  e^{-\epsilon} \le \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \le e^\epsilon
-\end{align}
-
-We first bound the left side of the inequality, setting $i = \mu - l$
-\begin{align}
-\frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \ge e^{-\epsilon} \\
-\frac{n-(\mu-l)}{n}\frac{q}{p} + \frac{\mu-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
-\frac{n-(nq-l)}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
-\frac{np + l}{n}\frac{q}{p} + \frac{nq-l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
-q + \frac{l}{n}\frac{q}{p} +  p - \frac{l}{n} \frac{p}{q} \ge e^{-\epsilon} \\
-1 - \frac{l}{n} \frac{p-q}{pq}  \ge e^{-\epsilon}. \\
-l \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q}  
-\end{align}
-
-Plugging expression for $l$ one arrives to the bound of $q$
-\begin{align}
-\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q} \\
- \frac {(p - q)^2} {q \cdot p^2} \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
- \text{ since }  \frac {(p - q)^2} { p^2} \le 1 \text{ , then }  \\
-  \frac {(p - q)^2} {q \cdot p^2} \le \frac{1}{q}  \le   \frac { n \left [ 1 - e^{-\epsilon}\right ]^2 } { 3  ln\frac{2}{\delta}}  \\
-  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 } \label{lem:rs201}
-\end{align}
-
-In a similar fashion, one arrives to the right side bound
-\begin{align}
-i = \mu + l \\
-\frac{l}{n} \frac{p-q}{pq}  \le e^\epsilon - 1 \\
-\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ e^\epsilon - 1  \right ] \frac { npq}{p - q} \\
-  q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ e^{\epsilon} - 1\right ]^2 }  \label{lem:rs202}
-\end{align}
-
-Note that since $x + 1/x \ge 2$, then 
-\[ e^{\epsilon} - 1 \ge 1 - e^{-\epsilon} \]
-Which implies that if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met, which leads to the following lemma
-
- \begin{lem} \label{lem:rs203}
- Bit flipping randomization procedure $\cR$ applied to a collection of $n$ zero bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
- \begin{align*}
-  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }\end{align*}
-\end{lem}
-
-By using the symmetry property of all-zero and all-set bits distributions, one arrives at the the identical statement for all-set bits collection
- \begin{lem} \label{lem:rs204}
- Bit flipping randomization procedure $\cR$ applied to a collection of $n$ set bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
- \begin{align*}
-  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }
-\end{align*}
-\end{lem}
-
-
-\section{Clear Reports}
-
-Assume that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We will have each user donate his data $\bbx_i$. Further, we will inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake. We call this algorithm 
-\[
-M(\bbx_1,  \dots , \bbx_n) = \pi (\bbx_1, \dots , \bbx_n, \bbz_1, \dots , \bbz_m) \text{ where } \pi \text{ permutes its elements}. 
-\]
-We then compute the privacy loss of such an algorithm $M$. Equivalently, we could write the output as a histogram over the entire database, as in $M(\bbx_1,  \dots , \bbx_n) = \sum^n_{i=1} \bbx_i + \sum^m_{j=1} \bbz_j$. Note that rather than inject random noise to these counts, as in central differential privacy, we want to consider \emph{anonymized differential privacy}, where data records are transmitted through a mix net to break any identifiers with each data entry and the server sees the aggregated records in some random order. In this model, there is no trusted server that injects noise to ensure DP. Rather, the user needs to only trust the anonymizer to shuffle real and fake records.
-
-We then consider the privacy loss for a general mechanism $M$. Consider an outcome $h \in \N^d$, which is a histogram over the full dataset domain and neighboring datasets $\bbx$ and $\bbx'$.
-
-\begin{align}
-L(h) = \log \left ( \frac{\Pr[M(\bbx) = h]}{\Pr[M(\bbx') = h]} \right )
-\end{align}
-
-If we can bound $L(h)$ by $\epsilon$ for any outcome $h$ then we say that $M$ is $\epsilon$-DP. If we can bound $L(h)$ by $\epsilon$ with probability at least $1 - \delta$ where the randomness is over $h \sim M(\bbx)$, then we say that $M$ is $(\epsilon, \delta)$-DP.
-
-We now focus on $M$ being the mechanism described above, which injects $m$ fake reports. We can then write the privacy loss in the following way where we assume, without loss of generality, that $\bbx$ and $\bbx'$ only differ in the first record, i.e. $\bbx_i = \bbx'_i$ for all $i \ne 1$.
-
-\begin{align*}
-L(h) &= \log \left ( \frac{\Pr[x_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]}{\Pr[x'_1 + \sum^n_{i=2} \bbx_i + \sum^m_{j=1} \bbz_j = h]} \right ) \\
-&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \bbx_1 - \sum^n_{i=2} \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h - \bbx'_1 - \sum^n_{i=2} x_i ]} \right )  \\
-&=  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = h - \sum^n_{i=1}  \bbx_i ]}{\Pr[ \sum^m_{j=1} \bbz_j = h  - \sum^n_{i=1} \bbx_i  - (\bbx'_1 - \bbx_1) ]} \right )
-\end{align*}
-
-We denote  $\hat{h}$ to be the histogram of the fake records only $\hat{h} = h - \sum^n_{i=1} \bbx_i$, with respective counts in each histogram bin $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_d\}$.  Then the privacy loss ratio can be written as:
-
-\begin{align*}
-L(h) =  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h}  + \bbx_1 - \bbx'_1) ]} \right )
-\end{align*}
-
-
-
-The one-hot vectors $\bbx_1$  and $\bbx'_1$ may only differ in two positions, let these positions be $\ell$ and $\ell'$. 
-$\bbx_1$ and $\bbx'_1$ must have opposite bit-values in positions $i$ and $i'$ (otherwise these vectors are identical). 
-Without loss of generality assume $x_{1,\ell} = 1, x_{1,\ell'} = 0$ and $x'_{1,\ell} = 0, x'_{1,\ell'} = 1$.  
-Adding $\bbx_1$ adds 1 to $h_i$, while subtracting $\bbx'_1$ removes 1 from $h_\ell'$.
-Hence,  if $\hat{h} = \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d\} $, then  $\hat{h} + \bbx_1 -\bbx'_1 =  \{ \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} -1, \dots, \hat{h}_d\} $.
-
-Further, note that the count the fake bits $\hat{h}_\ell = \sum^m_{j=1} \bbz_{j,\ell}$ is a binomial distribution $h_\ell \sim \text{Bin}(m, 1/d)$, and the distribution of the fake bit counts across the bins takes the multinomial form $ \hat{h} \sim \text{Multinomial}(m,(1/d,\cdots, 1/d))$. We then aim to bound the following quantity.
-
-\begin{align*}
- L(h) &= \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h} + \bbx_1 - \bbx'_1]} \right ) \\
- & = \log  \left ( \frac{ {m \choose \hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell, \dots, \hat{h}_{\ell'}, \dots, \hat{h}_d}}{ { m \choose hat{h}_1, \hat{h}_2, \dots , \hat{h}_\ell + 1, \dots, \hat{h}_{\ell'} - 1, \dots, \hat{h}_d}} \right ) \\
- & = \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) 
-\end{align*}
-
-It must be stressed that for a given pair of $(\bbx_1, \bbx'_1)$, the corresponding position pair $(\ell,\ell')$ where their bits are different is fixed, and the privacy loss only surfaces while observing the counts in the corresponding histogram bins $(h_\ell, h_{\ell'})$.  It's entirely possible to see high ratio between counts in some other histogram bins, but it wouldn't contribute to the privacy loss for a concrete pair $(\bbx_1, \bbx'_1)$.  This observation allows us to focus only on a single pair of the histogram bins, ignoring the rest of the histogram as immaterial.  
-
-By applying a Chernoff bound, we have a bound (symmetric for the upper and lower tail) for the sum of the fake bits in any bin $\hat{h}_k = \sum^m_{j=1} z_{j,k},  k \in [d]$
-
-\begin{align*}
- \Pr \left [ \left | \hat{h}_k - \frac{m}{d} \right | > t \frac{m}{d} \right ]  \le 2 e^{- \frac{m}{d} \frac{t^2}{3}}, \qquad \text{ for  } 0 < t < 1.
-\end{align*}
-
-Choose $t$ to fit the expression below, hence $t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }$.
-%\begin{align}
-%2e^{- \frac{m}{d} \frac{t^2}{3}} = \frac{\delta}{2}  \\
-%- \frac{m}{d} \frac{t^2}{3} = \log{\frac{\delta}{4}}  \\
-% \frac{m}{d} \frac{t^2}{3} = \log{\frac{4}{\delta}} \\
-% t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }
-%\end{align}
-Using this expression for $t$ turns our Chernoff bound into the following,
- 
- \begin{align}
- Pr \left [ \left | \bar{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \frac{\delta}{2}
-\end{align}
-
-Given any pair of the histogram bins at positions $(\ell,\ell')$, the probability of observing large deviation from the mean in at least one bin obeys the unions bound.
-\[
-\Pr \left [ \max_{k \in (\ell,\ell')} \left | \hat{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \delta
-\]
-
-We then condition on the event that both counts $\hat{h}_l$ or $\hat{h}_{l'}$ fall in the interval $m/d \pm \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}$, which event occurs with probability at least $1 - \delta$.  
-Conditioned on there being the given number of fake records, we can upper bound the privacy ratio $L(h)$
-
- \begin{align}
- L(h) =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \le \log  \left ( \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \le \epsilon 
-\end{align}
-
-From the above, we then get a condition on the number of fake records, m, to ensure DP.
- \begin{align*}
-& \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^\epsilon  \\
-\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) - 1 \ge 0 \\
-\implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) \ge 0 \\
-\implies &\sqrt{  \frac{m}{d}} \left ( \sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1) \right ) \ge 0 \\
-\implies &\sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  \ge 0 \\
-\implies &\sqrt{  \frac{m}{d}}  \ge  \frac { \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  } { e^\epsilon - 1 } \\
-\implies & \frac{m}{d}  \ge 3\log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2
-\end{align*}
-
-As for the lower bound of $L(h)$, it's met if the upper bound is met.
- \begin{align*}
- L(h) & =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \ge \log  \left ( \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \ge - \epsilon  \\
-\implies &  \frac{ m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \ge e^{-\epsilon} \\
- \implies &  \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} \le e^{\epsilon}  \\
-\implies &   \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} < \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^{\epsilon} 
-\end{align*}
-
-
-%%%%%%%%%%%%%%%%%%% - but flipping with fake records
-
-\section{Fake records and bit flipping}
-
-We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
-\[
-M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
-\]
-
-Without los of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive a neighboring data set $\bbx'$.  The outcome is a histogram $g \in \N^d$ containing sums of randomized bits in each dimension, and the privacy loss:
-
-\begin{equation} \label{eq:lgbound}
-L(g) = \log \left ( \frac{\Pr[M_r(\bbx) = g]}{\Pr[M_r(\bbx') = g]} \right )
-\end{equation}
-
-The combined set $\bbx + \bbz$ gives raise to a histogram $h \in \N^d$ received by applying the before discussed mechanism M (clear true records plus fake records).  Hence, the $Pr [ M_r(x) = g ]$ can be written as a sum of probabilities over the domain of $h$:
-
- \begin{align*}
- & Pr [ M_r(x) = g ] = \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot Pr [ g | h ]  \\
-\implies &  L(g) =  \log  \left ( \frac{  \sum_{h \in \N^d} Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   }{    \sum_{h' \in \N^d}  Pr \left [  M(\bbx') = h' \right ] \cdot   Pr[ g | h']   } \right )
-\end{align*}
-
-Noting that
-\[
- Pr \left [  M(\bbx) = h \right ]  =  Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]
- \] 
- 
-And regrouping  the privacy loss ratio to have summands with same $Pr \left [  M(\bbx) = h \right ]$ in identical positions in numerator and denominator, and applying \eqref{lem:rsbound} we have:
- \begin{align*}
-& \log \left ( \max_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \text{ , and } \\
-& L(g) \ge  log \left ( \min_{h \in \N^d} \left ( \frac{  Pr \left [  M(\bbx) = h \right ] \cdot  Pr [ g | h ]   } {   Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ] \cdot  Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right ) \\
-\end{align*}
-
-Probabilities $Pr \left [  M(\bbx) = h \right ]$ and $ Pr \left [  M(\bbx') = h - \bbx_1 + \bbx'_1 \right ]$ cancel each other out in each ratio, hence giving us the bounds of the privacy loss over domain of $h$ .
-
-\begin{align*}
-\log \left ( \max_{h \in \N^d} \left ( \frac{  Pr [ g | h ]   } { Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }    \right ) \right ) \ge L(g) \ge  log \left ( \min_{h \in \N^d}  \left ( \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  }  \right ) \right )
-\end{align*}
-
-Since bits are flipped independently, the probability of finding certain number of bits in a particular histogram bin $g_l$ depends only on how many not-yet-randomized set bits there are in the dimension $l$, that is the value of $h_l$.  Such independence allows to re-write $Pr [ g | h]$ as a product of probabilities for each dimension.
- \[
-Pr [ M_r(x) = g ] = Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] = \prod_{i=1}^d Pr[ g_i | h_i] 
-\]
-
-Without loss of generality assume that $\bbx_1$ and $\bbx'_1$ differ in the first and second positions, that is $\bbx_{1,1} = 1, \bbx_{1,2} = 0$ and $\bbx'_{1,1} = 0, \bbx'_{1,2} = 1$, then
-\begin{align*}
- & h  - \bbx_1 + \bbx'_1 = \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} \\
- \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{ Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1, {h}_2, , \dots, {h}_d\} ] } { Pr [    \{ {g}_1, {g}_2, , \dots, {g}_d\} |  \{ {h}_1 - 1, {h}_2 + 1, , \dots, {h}_d\} ]  } \\
-  \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } = \frac{  Pr[ g_1 | h_1] Pr[ g_2 | h_2] \prod_{i=3}^d Pr[ g_i | h_i]  } {  Pr[ g_1 | h_1 - 1] Pr[ g_2 | h_2 + 1] \prod_{i=3}^d Pr[ g_i | h_i]  }  \\
-   \implies &  \frac{  Pr [ g | h ]   } {    Pr [ g | h  - \bbx_1 + \bbx'_1  ]  } =   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  } 
-\end{align*}
-
-Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds become:
-\begin{align*}
-& \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right ) \right ) \ge L(g) \ge  \min_{h \in \N^d}  \left ( \log \left (  \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }   \right ) \right ) \\
-\implies &  \max_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \max_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right) \ge L(g) \text{ , and } \\
-&  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
-\end{align*}
-
-Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  
-
-Suppose that $r$ fake records (out of $m$) happened to have zero bits in the affected dimensions ($1$ and $2$).  We will show later that $r \to m$,  for  large $d$.  Then we are bounding the product of privacy loss ratios in the affected dimensions to stay between $e^{-\epsilon}$ and $e^\epsilon$ with probability $1-\delta$.
-\begin{align} \label{lem:fk101}
-P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta
-\end{align}
-
-We achieve condition of \eqref{lem:fk101} by bounding the ratio in each dimension separately.  Suppose that the following holds
-\begin{align*} \label{lem:fk101}
-&& P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1] }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 \\
-\text{and} && P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 
-\end{align*}
-
-Then, by the union bound, the combined probability of either ratio falling outside its bound is $\delta$, and with probability $1-\delta$, both ratios stay between $e^{-\frac{\epsilon}{2}}$ and $e^\frac{\epsilon}{2}$, hence the product of the ratios is bounded in $[ e^{-\epsilon}, e^\epsilon]$.   
-
-\begin{prop}
-\end{prop}
-
-
-%%% Bounding ratio of sums by max ratio of terms
 
 \section{Appendix: Ratios of sums: properties}
 
