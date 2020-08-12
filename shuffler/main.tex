@@ -170,7 +170,7 @@ M(x_1,  \dots , x_n) = \pi (\cR(x_1), \dots , \cR(x_n)) \text{ where } \pi \text
 
 If $\Ssp$ a finite domain of dimension $d$,  we can write the output of $M$ as a histogram $h \in \N^d$ over the entire domain $\Ssp$.   $M(x_1,  \dots , x_n) = \{h_1, h_2, ..., h_d\}$. Where each histogram value $h_i$ represents the number of users reported a particular value $s_i \in  \Ssp$.   We then describe $M$ as a mapping $M(\bbx):\map{M}{\bbx}{\Hsp_n = \N^d}$, whereby an outcome of $M(\bbx)$ is a particular histogram $h \in \Hsp_n$, that is a histograms of $d$-bins and $n$-records.
 
-\begin{prop} If $M$ is $(\epsilon,\delta)$-\textbf{differentially private} for $n$ records, then it's $(\epsilon,\delta)$-\textbf{differentially private} for $n+1$ records. Thus, protection for $n$ records is enough for any number of records above $n$
+\begin{prop} \label{prop:nprot} If $M$ is $(\epsilon,\delta)$-\textbf{differentially private} for $n$ records, then it's $(\epsilon,\delta)$-\textbf{differentially private} for $n+1$ records. Thus, protection for $n$ records is enough for any number of records above $n$
 
 Assume  $M$ is  $(\epsilon,\delta)$-\textbf{differentially private} for $n$ values of $\bbx$. Then for any neighboring datasets $\bbx$ and $\bbx'$ of size $n$, and any $H_n \cont \Hsp_n$
  \begin{align}
@@ -511,49 +511,123 @@ Since distributions of $D_0$ and $D_n$ are symmetrical the symmetrical bound of 
 \begin{prop} \label{lem:bound}
 Any distribution $D_m$ is bounded by the Chernoff bound of $D_0$
  \begin{align}
-P(|s - \mu_m| > t\mu_m) \le 2 e^{- \frac{t^2\mu_0}{3}}  = 2 e^{- \frac{t^2nq}{3}} 
+P(|s - \mu_m| > t\mu_m) \le 2 e^{- \frac{t^2\mu_0}{3}}  = 2 e^{- \frac{t^2nq}{3}} \label{eq:bound}
 \end{align}
 \end{prop}
+
+An obvious consequence of \ref{eq:bound} is  
+\begin{align}
+P(|s - \mu_m| > t\mu_0) \le  2 e^{- \frac{t^2nq}{3}} \text{ , because } \mu_0 < \mu_n \label{eq:zbound}
+\end{align} 
+
 
 \subsubsection{Bounding privacy loss for an arbitrary distribution}
 
 Due to the distributional symmetry (corollary \ref{cor:sym}), the reciprocal of the privacy loss ratio $\frac{1}{R(s)}$ behaves like a mirror-image of $R(s)$.  It monotonically grows with $s$, reaches maximum at $n$, and the corollary \ref{cor:rs3} holds for collection $D_n$ with respect to $\frac{1}{R(s)}$.  
-\begin{cor}
-For the right deviations $l \ge npq$ from the mean the reciprocal of privacy loss ratio for the collection of $n$ bits is bounded by the reciprocal of the privacy loss ratio for the collection of $n$ zero bits
+\begin{cor} \label{cor:rtail}
+For the right deviations $l \ge npq$ from the mean the reciprocal of privacy loss ratio for the collection of $n$ bits is bounded by the reciprocal of the privacy loss ratio for the collection of $n$ set bits
 \[ \frac{1}{R[\mu_m + l|D_m]} \le \frac{1}{R[\mu_n + (l+2)|D_n]} \]
 \end{cor}
 
-\newpage 
+We now ready to prove the main result of this section
 
-
-
-
-proposition \ref{lem:rs3} 
- \begin{lem} \label{lem:rs204}  Bit flipping randomization procedure $\cR$ applied to a collection of $n$ set bits is $(\epsilon, \delta)$-private if the bit flipping frequency $q$ satisfies \eqref{lem:rs201}
- \begin{align*}
-  q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon}\right ]^2 }
-\end{align*}
-\end{lem}
-
-The next corollary bounds the right tail of distribution
-\begin{cor}
-For the right deviations $l \ge npq$ from the mean, the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ set bits
-\[ R[\mu_r + l|D_r] \le R[\mu_n + l+2 |D_n] \]
-\end{cor}
+\begin{prop} \label{lem:bound}
+The algorithm M is $(\epsilon,\delta)$-differentially private on a set of any $n$ bits if the flipping frequency $q$ obeys the following bound:
+\begin{align}
+ q \ge \frac  { 3  ln\frac{2}{\delta}}  { n \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{n \left [ 1 - e^{-\epsilon}\right ] }
+\end{align}
 \begin{pf}
-TODO - proving by symmetry between $D_0$ and $D_n$ distributions. 
+The privacy loss ratio of $D_0$ is symmetrical to its reciprocal in $D_m$
+ \begin{align*}
+  & P(s=i| D_0) = P(s = n-i | D_n) \\
+  & R( | D_0) = \frac{P(i| D_0)} { P(i-1|D_0)} = \frac{P(n-i | D_0)} { P(n - (i-1)|D_0)} = \frac{1}{R(n-i | D_m)}
+  \end{align*}
+
+Hence, the upper bound of $R(s|D_0)$ is also an upper bound of $\frac{1}{R(s=i | D_m)}$.  By corollaries \ref{cor:rs3} and  \ref{cor:rtail}:
+ \begin{align*}
+& R[\mu_m - l|D_m]  \le R[\mu_0 - (l+2)|D_0]  \\
+\& &  \frac{1}{R[\mu_m + l|D_m]} \le \frac{1}{R[\mu_n + (l+2)|D_n]} = R(s - (l+2) | D_0) \\
+\implies &  R(\mu_m - l | D_m) \le e^{\epsilon}  \\
+\& &  \frac{1} {R[\mu_m + l|D_m]} \le e^\epsilon  \text{ , if }   R(\mu_0 - (l+2) | D_0)  \le e^\epsilon
+  \end{align*}
+
+In other words, privacy loss at $R(\mu_0 - (l+2) | D_0)$ bounds the privacy loss ratio and its reciprocal on the interval $[\mu_m - l, \mu_m + l ]$ for any $D_m$. 
+
+Now, recall that each distribution of $D_m$ is bounded by \ref{eq:zbound}
+\[ P(|s_m - \mu_m| > tnq) \le 2 e^{- \frac{t^2nq}{3}} \label{eq:bound} \]
+Setting $t=\sqrt{\frac{3}{nq} ln\frac{2}{\delta}}$ one arrives to
+ \begin{align}
+P \left (|s_m - \mu_m| >\sqrt{3nq \cdot ln\frac{2}{\delta}} \right ) \le \delta
+\end{align}
+
+Which ensures that the number of successes $s_m$ generated by a collection $D_m$ falls into the interval $[\mu_m - l, \mu_m + l ]$  with probability $1-\delta$, where $l=\sqrt{3nq \cdot ln\frac{2}{\delta}}$
+
+\[ P(s \in [\mu_m - l, \mu_m + l ]) \ge 1- \delta\]
+
+Following exact same steps that proved lemma \ref{lem:rs203}, one receives after trivial manipulation:
+ \begin{align}
+R(\mu_0 - (l+2) | D_0)  \le e^\epsilon \\
+l + 2 \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q}  \\
+\sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ 1 - e^{-\epsilon}\right ] \frac { npq}{p - q} - 2 \\
+ \text{ since } \frac{p-q}{pq}  = \frac{1}{q} - \frac{1}{p} < \frac{1}{q} \\
+  q< \frac {pq}{p - q}  \\
+ \sqrt{3nq \cdot ln\frac{2}{\delta}} \le \left [ 1 - e^{-\epsilon}\right ] nq - 2 \\
+3nq \cdot ln\frac{2}{\delta}  \le \left [ \left [ 1 - e^{-\epsilon}\right ] nq \right ]^2 - 4 \left [ 1 - e^{-\epsilon}\right ]nq\\
+ q \ge \frac  { 3  ln\frac{2}{\delta}}  { n \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{n \left [ 1 - e^{-\epsilon}\right ] } \label{eq:binq}
+\end{align}
 \end{pf}
-
-Using the bound \eqref{lem:rs201} and the fact that all-zero and all-set bit collections provide identical bounds to the privacy loss ratio for the left and the right side of distribution, we finally arrive to an important theorem.
-\begin{prop}
-randomization procedure $\cR$ is $(\epsilon, \delta)$-private on a collection $n$ bits, when the flipping frequency $q$ obeys the bound below
-\begin{equation} \label{eq:fullbound}
-q \ge  \frac { 3 \cdot ln\frac{2}{\delta}} { n \left [ 1 - e^{-\epsilon} - 2 \frac{p-q}{npq} \right ]^2 }
-\end{equation}
 \end{prop}
-Note that the term $2 \frac{p-q}{npq}$ appeared due to $l+2$ correction of both corollaries above.  For sufficiently large $n$, this term diminishes to zero, which simplifies the bound to the form of lemma  \eqref{lem:rs203}
 
-\section{Clear Reports}
+\subsection{Sensitivity}
+
+
+One extracts estimate of the number of set bits among $n$ users as follows.  Should there be $m$ set bits in the collection, then
+\begin{align*}
+& \E(s) = pm + (n-m)q \\
+& \E(s) = m(p-q) + nq \\
+\implies & \bar{m} = \frac{s - nq}{p-q}
+\end{align*}
+
+Note that variance of the above estimate $\bar{m}$ is
+\[ VAR(\bar{m}) = \frac{VAR(s)}{ (p-q)^2} = \frac{npq}{(p-q)^2}\]
+
+Using expression \ref{eq:binq} for the flip frequency one receives.
+\begin{align}
+VAR(\bar{m}) = \left [ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }  \right ] \frac{p}{(p-q)^2}
+\end{align}
+
+Fro large $n$ the corresponding $q$ becomes very small, which makes $ \frac{p}{(p-q)^2}$ approach 1, which in turn makes the variance independent of $n$.
+Of corse, most applications compute a proportion of $m/n$, which reduces deviation significantly
+\begin{align}
+VAR(\bar{\frac{m}{n}}) = \left [ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }  \right ] \frac{p}{n^2(p-q)^2} \\
+\sigma(\bar{\frac{m}{n}}) = \frac{\sqrt{p}}{n(p-q)} \sqrt{ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }} \label{eq:bitdev}
+\end{align}
+
+Most commonly the deviation of a ratio estimate reduces proportional to $\frac{1}{\sqrt{n}}$.  This method allows to drive down deviation proportional to $1/n$, allowing to receive meaningful results even for small number of participants.
+
+\subsection{fake records protocol}
+
+One obvious limitation revealed by \ref{eq:bitdev} is that for low $n$, the flipping frequency computed by \ref{eq:binq} could be high enough to make $\frac{\sqrt{p}}{(p-q)}$ significant.   We can reduce $\frac{\sqrt{p}}{(p-q)}$  to 1 without by letting users report randomized fake records along with their true records.  Suppose $k$ users randomize a fake zero bit and send it to a shuffler along with their randomized true bits.  Then the collection of the original bits contains $m$ set bits and $n+k - m$ zero bits.  The flipping frequency $q$ is computed from:
+\[ q = \frac  { 3  ln\frac{2}{\delta}}  { (n+k) \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{(n+k) \left [ 1 - e^{-\epsilon}\right ] } \]
+
+Hence, $q$ can be made arbitrary small by increasing $k$, which in turn reduces $\frac{\sqrt{p}}{(p-q)}$  to 1.   On the other hand, the estimate of $m$ is now:
+\begin{align*}
+& \E(s) = pm + (n+k-m)q \\
+& \E(s) = m(p-q) + (n+k)q \\
+\implies & \bar{m} = \frac{s - (n+k)q}{p-q}
+\end{align*}
+
+The deviation of the estimate is
+\begin{align}
+& \sigma(\bar{m}) =  \sqrt { \frac{VAR(s)}{ (p-q)^2}} =  \sqrt {\frac{(n+k)pq}{ (p-q)^2} } \\
+= &  \frac{\sqrt{p}}{p-q} \left [ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }  \right ] \label{eq:bins}
+\end{align}
+
+Choosing $k$ large enough eliminates the leading term  $\frac{\sqrt{p}}{p-q}$, thus reducing deviation without loss of privacy. This is an interesting property of the fake noise, it enables to increase measurement precision for same privacy settings for the expense of sending move volume to the shuffler.  Of corse, adding volume to the mix-net traffic is not free, at at some point adding fake noise becomes infeasible.  However, for small number of users, it provides desired precision increase. This useful property will be exploited in the following sections that present industrial strength shuffling protocol for indicator vectors. 
+
+\section{Clear Reports Protocol}
+
+We now turn to mix-net model protocols suitable for indicator vectors. The first and the simplest protocol of the kind is when users report their indicator vectors in clear, but some fraction of users also send randomly generated indicator vectors to the shuffler. 
 
 Assume that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We will have each user donate his data $\bbx_i$. Further, we will inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake. We call this algorithm 
 \[
@@ -582,7 +656,6 @@ We denote  $\hat{h}$ to be the histogram of the fake records only $\hat{h} = h -
 \begin{align*}
 L(h) =  \log \left ( \frac{\Pr[\sum^m_{j=1} \bbz_j = \hat{h} ]}{\Pr[ \sum^m_{j=1} \bbz_j = \hat{h}  + \bbx_1 - \bbx'_1) ]} \right )
 \end{align*}
-
 
 
 The one-hot vectors $\bbx_1$  and $\bbx'_1$ may only differ in two positions, let these positions be $\ell$ and $\ell'$. 
@@ -651,17 +724,18 @@ As for the lower bound of $L(h)$, it's met if the upper bound is met.
 \implies &   \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} < \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^{\epsilon} 
 \end{align*}
 
+An obvious disadvantage of this protocol is its infeasibility for large $d$. If vector dimensions is many thousands, sending millions of fake records through the mix-net becomes prohibitively expensive.  Which problem can be resolved by adding bit flipping to both true and fake records.
 
 %%%%%%%%%%%%%%%%%%% - but flipping with fake records
 
 \section{Fake records and bit flipping}
 
-We now apply the exact same protocol, whereby users produce $n$ real and $m$ fake reports, but require each 1-hot vector to bit bit-flipped with frequency $q$.  A randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
+We now apply the exact same protocol with a bit flipping twist. Users produce $n$ real and $m$ fake reports, but flips bits of either 1-hot vector frequency $q$ before sending to the shuffler.  More formally, a randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
 \[
 M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
 \]
 
-Without los of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive a neighboring data set $\bbx'$.  The outcome is a histogram $g \in \N^d$ containing sums of randomized bits in each dimension, and the privacy loss:
+Without loss of generality assume $\bbx_1$ is replaced with $\bbx'_1$ to receive a neighboring data set $\bbx'$.  The outcome is a histogram $g \in \N^d$ containing sums of randomized bits in each dimension, and the privacy loss:
 
 \begin{equation} \label{eq:lgbound}
 L(g) = \log \left ( \frac{\Pr[M_r(\bbx) = g]}{\Pr[M_r(\bbx') = g]} \right )
@@ -711,7 +785,93 @@ Plugging the above formula into \eqref{eq:lgbound}, the privacy loss bounds beco
 &  L(g) \ge \min_{h \in \N^d}  \left ( \log \left (   \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \right ) \right )  + \min_{h \in \N^d}  \left ( \log  \left (\frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \right) \right)
 \end{align*}
 
-Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  
+Basically, the privacy loss is bound by the sum of privacy losses in each of the affected dimensions.  Which enables relatively simple path to the bound.   
+
+\begin{prop}
+Bit flipping shuffling algorithm $M$ applied to a collection of $n$ true and $m$ fake records is $(\epsilon, \delta)$-private when the bit flipping frequency obeys the bound below:
+\begin{align}
+q \ge \frac  { 3  ln\frac{4}{\delta}}  { (n + m) \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{(n + m) \left [ 1 - e^{-\epsilon/2}\right ] } 
+\end{align}
+\begin{pf}
+We are bounding the product of privacy loss ratios in the affected dimensions to stay between $e^{-\epsilon}$ and $e^\epsilon$ with probability $1-\delta$.
+\begin{align} \label{lem:fk101}
+P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta
+\end{align}
+We achieve the condition above by bounding the ratio in each dimension separately.  Suppose that the following holds
+\begin{align} \label{lem:fk102}
+& P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1] }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 \\
+\& & P \left (   e^\frac{\epsilon}{2} \ge \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\frac{\epsilon}{2}} \right ) \le 1 - \delta/2 
+\end{align}
+
+Then, by the union bound, the combined probability of either ratio falling outside its bound is $\delta$, and with probability $1-\delta$, both ratios stay between $e^{-\frac{\epsilon}{2}}$ and $e^\frac{\epsilon}{2}$, hence the product of the ratios is bounded in $[ e^{-\epsilon}, e^\epsilon]$.   
+
+By proposition \ref{lem:bound} an algorithm $M$ that shuffles results of the bit flipping procedure  $\cR$ executed over a set of $n+m$ bits is $(\epsilon, \delta)$-private if the bit flipping frequency is chosen according to \ref{eq:binq}:
+\[ q \ge \frac  { 3  ln\frac{2}{\delta}}  { (n+m) \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{(n+m) \left [ 1 - e^{-\epsilon}\right ] } \]
+
+Plugging  $(\epsilon, \delta)$ settings needed to satisfy condition \ref{lem:fk102}, one arrives to the  bound of the flipping frequency
+\[ q \ge \frac  { 3  ln\frac{4}{\delta}}  { (n + m) \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{(n + m) \left [ 1 - e^{-\epsilon/2}\right ] } \]
+\end{pf}
+\end{prop}
+
+The above choice of $q$ introduces sensitivity that closely follows that of the binary case \ref{eq:bins}.    The estimate of the sum of randomized bits in each bucket can be extracted as follows.  Denote $r$ be a number of the fake set bits (before randomization) in each bucket. $r$ is a binomial random variable with success probability $\frac{1}{d}$.
+\[ r \sim Bin(m, 1/d) \]
+Assuming a number of true set bits in the same bucket is $z$ and the total sum of randomized bits is $s$, we have the expectation equation below: 
+\begin{align}
+& s = p(z + r)  + (n+m - r - z)q \\
+& \E(s) = pz + \E(r)p + (n+m)q - \E(r)q - zq\\
+& \E(s) = z(p-q) + \E(r)(p-q) + (n+m)q \\
+\implies & \bar{z} = \frac{s - \frac{m}{d}(p-q) - (n+m)q}{p-q} =  \frac{s - (n+m)q}{p-q}  - \frac{m}{d} \label{eq:estimate}
+\end{align}
+
+The variance of the estimate is
+\begin{align*}
+VAR( \bar{z} ) =  \frac{VAR(s)}{(p-q)^2}  + VAR(r) = \frac{(n+m)pq}{(p-q)^2} + \frac{m}{d}(1-1/d)
+\end{align*}
+
+
+In practice, it's the percentage of overall population falling into each bucket sought.  In which case, the deviation is reduced by $n$, and the ratio per bucket estimate has deviation as below:
+\begin{align}
+\sigma( \frac{\bar{z}}{n} ) =  \frac{1}{n} \sqrt { \frac{p}{(p-q)^2} \left [   \frac  { 3  ln\frac{4}{\delta}}  { \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{ \left [ 1 - e^{-\epsilon/2}\right ] }   \right ] + \frac{m}{d}(1-1/d) } \label{eq:estimate_var}
+\end{align}
+
+Expressions \ref{eq:estimate} and \ref{eq:estimate_var} give insight on how the fake noise machinery may help.  If $d >> m$, then the term $\frac{m}{d}(1-1/d)$ becomes negligible, which reduces sensitivity to the single bit case, and the number of fake records is chosen to minimize $\frac{\sqrt{p}}{p-q}$ enough without incurring large communication cost. 
+
+For small $n$ the bound can be further improved for the $d >> m$ case.  Recall that by proposition \ref{prop:nprot} protection for $n$ records is enough to protect any records above $n$.   Assuming that  $d >> m$ and $ \frac{m}{d} \rightarrow 0$, the fake bits could be assumed all zeros.  Assume there's only one user record $x_1$, that has a bit set in position 1, and it's replaced with another record $x'_1$ that has a set bit in position 2.   Then $\bbx$ and $\bbx'$ have configuration bellow:
+\begin{align*}
+\begin{matrix}
+\bbx =  \left\{\begin{matrix}
+0 & 0 \\
+0 & 0 \\
+\cdots & \cdots \\
+0 & 0\\
+1 & 0
+\end{matrix}\right.
+&
+\bbx' =  \left\{\begin{matrix}
+0 & 0 \\
+0 & 0 \\
+\cdots & \cdots \\
+0 & 0\\
+0 & 1
+\end{matrix}\right.
+\end{matrix}
+\end{align*}
+
+For that specific setup we can use results for zero-bit collection directly.   Again we are bounding the ratio \ref{lem:fk101}, which could be re-written in terms of the privacy loss ratio $R(s|D_0)$ for the zero bit collection:
+
+\begin{align} \label{lem:fk202}
+& P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta  \\
+\implies & P \left (   e^\epsilon \ge R(s_1|D_0)) \cdot R(s_2|D_0) \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta 
+\end{align}
+
+Recall that the ratio $R(s|D_0)$ is $(\epsilon, \delta)$ bounded on a set of $m$ bits if
+\[  q \ge \frac  { 3  ln\frac{2}{\delta}}  { m\left [ 1 - e^{-\epsilon}\right ] ^2}  \]
+However, the reciprocal $\frac{1}{R(s|D_0)}$ needs less noise
+\[  q \ge \frac  { 3  ln\frac{2}{\delta}}  { m\left [e^{\epsilon} - 1 \right ] ^2}  \]
+
+\newpage
+
+We employ the results of lemma \eqref{lem:rs2}, which says that if $\cR$ is $(\epsilon, \delta)$-private on a collection $r$ bits, it's also $(\epsilon, \delta)$-private on collection of $r+1$ bits.  Therefore, a privacy loss could be bounded for the $m$ fake records only, and that will provide sufficient noise for the extra $n$ real records.  
 
 Suppose that $r$ fake records (out of $m$) happened to have zero bits in the affected dimensions ($1$ and $2$).  We will show later that $r \to m$,  for  large $d$.  Then we are bounding the product of privacy loss ratios in the affected dimensions to stay between $e^{-\epsilon}$ and $e^\epsilon$ with probability $1-\delta$.
 \begin{align} \label{lem:fk101}
@@ -732,7 +892,34 @@ Then, by the union bound, the combined probability of either ratio falling outsi
 
 %%% Bounding ratio of sums by max ratio of terms
 
-\section{Appendix B - proof of zero collection maxiality}
+\section{Appendix: Ratios of sums: properties}
+
+Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
+
+
+\begin{lem} \label{lem:rsbound}
+Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
+Then 
+\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
+\end{lem}
+\begin{pf}
+Write
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
+= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
+%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
+\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
+\end{align*}
+
+where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
+ \begin{align*}
+  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
+\end{align*}
+The low bound is derived in a similar fashion. 
+\end{pf}
+
+
+\section{Appendix B - proof of zero collection maximality}
 
 It is instructive to first consider the case where each record in the collection consists of a single bit, as the expressions simplify considerably.
 
@@ -1036,31 +1223,6 @@ contradicting our initial choice of $\delta$.
 
 
 
-\section{Appendix: Ratios of sums: properties}
-
-Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
-
-
-\begin{lem} \label{lem:rsbound}
-Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
-Then 
-\[ \max\left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right) \geq  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} \geq \min \left(\frac{a_1}{b_1},\dots,\frac{a_m}{b_m}\right). \]
-\end{lem}
-\begin{pf}
-Write
- \begin{align*}
-  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m}
-= \frac{a_1}{b_1}\frac{b_1}{b_1+\cdots+b_m} +
-%\frac{a_2}{b_2}\frac{b_2}{b_1+\cdots+b_m} +
-\cdots + \frac{a_m}{b_m}\frac{b_m}{b_1+\cdots+b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \\ 
-\end{align*}
-
-where $\lambda_1 + \cdots + \lambda_m = 1$.  Then
- \begin{align*}
-  \frac{a_1 + \cdots + a_m}{b_1 + \cdots + b_m} = \sum_{i=1}^m \frac{a_i}{b_i} \lambda_i  \leq  \sum_{i=1}^m \max \left ( \frac{a_i}{b_i} \right ) \lambda_i  = \max \left ( \frac{a_i}{b_i} \right ) \sum_{i=1}^m \lambda_i = \max \left ( \frac{a_i}{b_i} \right ) \\ 
-\end{align*}
-The low bound is derived in a similar fashion. 
-\end{pf}
 
 
 \newpage
