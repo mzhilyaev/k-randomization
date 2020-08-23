@@ -70,15 +70,40 @@
 \maketitle
 
 \section{Abstract}
-We study a variety of the shuffling protocols for reporting one-hot vectors from multiple users with respect to privacy, sensitivity and practicality.  From a practical standpoint, the cost of shuffling is not zero. Too many shuffled records may render a particular protocol impractical, even though its other metrics show good performance. We specifically consider protocols that minimize the number (but not necessarily the size) messages between a user device and the shuffler.
+The recent interest in mix-net differential privacy raises a question of productization of protocols based on shuffling algorithms. While interesting protocols have been developed in the literature, the cost aspect of them has been largely ignored.  Since mix-net shufflers rely on multiple (often cascading) PKI operation, sending too many shuffled records may render a particular protocol impractical, even though its other metrics show good performance.  In particular, reporting multivariate data  of large dimensions, by sending data for each dimension separately will multiple the cost of reporting by the number of dimensions - rendering such solution infeasible.  Hence, the motivation to develop industrials strength protocol suitable for very large dimensions and comparable in sensitivity and DP to single dimension protocols, but without the cost explosion caused by high dimensionality.  Given that the network handshaking and the PKI operations are the likely bottle neck in the mix-net processing, our cost model is proportional to the number (but not the size) of reports being shuffled, which implies that low cost protocols should ideally send high dimensionality data as single reports. 
 
-Assuming that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We consider multiple mix-net protocols for reporting 1-hot vectors.  A simple one would require each user to donate his data $\bbx_i$ in clear, but, in addition, inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake.  We call it the "clear-fake records" protocol and show that it provides adequate protection with the cost proportional to $[d]$. Hence if dimensions are not large then the "clear-fake records" protocol is preferred for its simplicity. 
+In this research we focus on reporting indicator vectors from multitude of users.  The indicator-vector reporting protocols uses a concept of fake records, whereby in addition to reporting (potentially randomized) real (true) user data, users also construct special fake records (indistinguishable from the true ones) and send them to the shuffler as well.  A measurer knows the amount of fake records, but can't tell a fake record from a true one. This technique greatly improves our ability to reduce randomization noise  and allows to achieve high sensitivity without altering $(\epsilon,\delta)$ privacy settings. The fake noise increases the transmission cost, but it's often justified by the radical reduction of the randomization noise.
 
-When $[d]$ is significant, the cost of sending and shuffling many fake records becomes prohibitive. Another protocol is developed,  which parameters are independent of $[d]$.  It's called a "fake and flip" protocol, whereby  a user still generates true and fake one-hot report vectors that are both randomized by bit flipping before being sent to the shuffler.  This enables adequate protection at reasonable cost. Depending on the data collection setting, various flavors of the "fake and flip" protocol are discussed.
+The study proceeds as the following
+\begin{itemize}
 
-In discussing mathematical properties of the protocols involving randomization we will rely upon results received for a single dimension bit reporting.  Which results we provide in the first sections, along with some theoretical result claiming that if a randomization algorithm  $\cR$ is $(\epsilon, \delta)$-private on a dataset of $n$ elements, it's also  $(\epsilon, \delta)$-private on a dataset of $n+1$ elements, that is adding more elements to the shuffled set does not reduce privacy. These results are, then, used to develop bounds for each protocol.
+\item We establish equivalency of $(\epsilon,\delta)$ differential privacy and the pair wise indistinguishability for the finite sets.
 
-\section{Differential Privacy Setup}
+\item Then we prove an important result that if a shuffling algorithm (applied to a finite domain) emits randomization noise enough to establish $(\epsilon,\delta)$ differential privacy for  $n$ records, same level of noise is also enough for $n+1$ reports. In other words, randomization that protect $n$ user records is sufficient for same DP protection for any number of records above $n$. This result is later used to enable an effective shuffling protocol for cases when number of users is moderate.
+
+\item We then proceed with in-depth study of a single. randomized bit shuffling protocol. This algorithm requires users to bit flips their true bit before reporting to a mix-net.  We prove that  $(\epsilon,\delta)$ differential privacy for an arbitrary collection of true user bits subjected to such protocol can be bound by a collection containing only zero true bits.  We then use this result to derive an important formula that expresses the flipping frequency through $(\epsilon,\delta)$ and the number of users $n$.  We show that the measurement accuracy of the average is proportional to $\frac{1}{n}$, rather than to $\frac{1}{\sqrt{n}}$ (as in local DP), and comparable to the central DP for large $n$.  It's notable that the single-bit research has also significantly improved the symmetrical  Chernoff bound for the Poisson-Binomial distributions arising in randomized response studies.  We finally show how fake bits can improve sensitivity without altering $(\epsilon,\delta)$ differential privacy settings.  Single bit results are then used to develop high dimensional indicator vector protocols.
+
+\item We then move to multidimensional 1-hot vector reporting.  The first protocol requires $n$ users to report their true indicator vectors in clear, but $m$ users also report a fake indicator vector to the shuffler.  DP is established when the number of fake records $m$ and dimensions $d$ obey the bound \eqref{eq:cfake}:
+\[ \frac{m}{d} \ge 3 \log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2 \]
+For realistic  $(\epsilon,\delta)$ settings and moderate $d$ this technique enables low measurement for very reasonable communication cost. However, since the choice of $m$ is proportional to the number of dimensions $d$, the protocol is impractical for very large $d$.  Which necessitated development of the protocols able to provide same performance for very large dimensions.
+
+\item The large dimension protocols  employ both fake noise and bit flipping.  Users still submit both true and fake indicator vectors, but bit flip each bit of the reported records before sending to the shuffler. These techniques allows radical reduction of bit flipping frequency (even for moderate $n$) and enables high precision measurement without sacrificing DP protection.  In particular, when $n$ is small (or unknown) and dimensionality is very large ($d >> m$), the number of fake records $m$ and the bit flipping frequency $q$ must obey the bound \eqref{eq:flipfake} to guarantee DP:
+
+\[ qm \ge 3\ln{\frac{4}{\delta}} \left (  \frac{e^\epsilon + 1}{e^\epsilon - 1} \right)^2 \label{eq:flipfake} \]
+
+It's remarkable that both \textbf{clear} and \textbf{bit-flipping} fake report algorithms generate essentially same bound, whereby they require that the expectation of records produced by the fake noise in each dimension stay above a constant computed from $(\epsilon,\delta)$ privacy settings.  
+
+We also present a general bound \eqref{eq:genbound} suitable for any arrangement of real of fake records. 
+\[ q(n+m) \ge \frac  { 3  ln\frac{4}{\delta}}  { \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon/2}\right ] } \]
+
+For large $n$ the positive effects of the fake records becomes negligiable, and the deviation of the estimate of the true bit sums in every dimension tents to a constant:
+\[ \sigma =  \sqrt {  \frac  { 3  ln\frac{4}{\delta}}  { \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{ \left [ 1 - e^{-\epsilon/2}\right ] } } \]
+
+In conclusion, the fake noise protocols provide viable alternative to local DP as they achieve sufficient measurement precision (lower but  comparable to central DP) without significant increase in transmission cost.  Details and engineering considerations are provided in the sequel.
+
+\end{itemize}
+
+\section{Differential privacy and point-wise indistinguishability for finite domains}
 \label{sec:dp}
 
 A record is an element of some space $\Dsp$, and a database $\xv$ is a vector of $n$ records: $\xv = (x_1,\dots,x_n) \in \Dsp^n$.
@@ -115,27 +140,34 @@ A randomized algorithm $\cR$ generates point-wise  $(\epsilon,\delta)$-\textbf{i
 A randomized algorithm $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private} if for every pair of neighboring databases $\xv,\xv' \in \Dsp^n$, $\cR$ generates point-wise  $(\epsilon,\delta)$-\textbf{indistinguishable} outcomes.   Per reference [2].  (Ryan Rogers, etc..)
 
 To restate.
-\begin{align} \label{eq:dpcnt}
- & \P \left ( \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta \text{, for any two neighbors } \xv,\xv' \\
+\begin{align}
+ & \P \left ( \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta \text{, for any two neighbors } \xv,\xv'  \label{eq:dpcnt1} \\ 
 \implies & \cR \text{ is } (\epsilon,\delta)-\textbf{differentially private}
 \end{align}
 \end{prop}
 
-\begin{prop}\label{cr:max} If ${\Ssp}$  if finite, there exists a set $S_m \cont \Ssp$, such that it maximizes the difference
+Note that the condition \ref{eq:dpcnt1} also implies
+\[ \P \left (  \exp(-\epsilon) \le \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]} \le  \exp(\epsilon) \right ) \ge 1 - \delta \]
+Because $\xv$ and $\xv'$ are interchange-able.  We commonly use the above notation in the sequel and bound both sides of the \textbf{privacy loss ratio} $R =  \frac{\P[\cR(\xv) = s]}{\P[\cR(\xv') = s]}$.  
+
+In general, $(\epsilon,\delta)$ point-wise indistinguishability doesn't always imply $(\epsilon,\delta)$ differential privacy.  However, for finite domains these two definitions are equivalent, which we prove in the propositions below.
+
+\begin{prop}\label{cr:max} If ${\Ssp}$  if finite, there exists a set $S_m \cont \Ssp$, such that it maximizes the \textbf{differential privacy} difference below (or \textbf{DP difference} for short)
 \[ \P[\cR(\xv) \in S]  - \exp(\epsilon) \cdot \P[\cR(\xv') \in S] \]
 
-Suppose ${\Ssp}$  if finite.  Then the for any $S \cont \Ssp$ respective set inclusion probabilities are
+${\Ssp}$  if finite.  Then the for any $S \cont \Ssp$ respective set inclusion probabilities are
 \begin{align*}
 \P[\cR(\xv) \in S]  = \sum_{s \in S} \P[\cR(\xv) = s]  \\
- \P[\cR(\xv) \in S]  = \sum_{s \in S} \P[\cR(\xv') = s]  \\
+ \P[\cR(\xv') \in S]  = \sum_{s \in S} \P[\cR(\xv') = s]  \\
 \end{align*}
 
-Consider a set  $S_m \cont \Ssp$ containing all and only $s \in S$, such that $\P[\cR(\xv) = s] >  \exp(\epsilon) \P[\cR(\xv') = s]$, that is - all point-wise distinguishable values of $s$.  The  $\sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] $ reaches maximum in $S_m$. Indeed, any set $S$ different from $S_m$ will contain either point-wise indistinguishable values of $s$ and they would reduce the sum or miss point-wise distinguishable values of $s$, which would also reduce the sum.   More formally:
+Consider a set  $S_m \cont \Ssp$ containing all and only $s \in S$, such that $\P[\cR(\xv) = s] >  \exp(\epsilon) \P[\cR(\xv') = s]$, that is - all point-wise distinguishable values of $s$.  The  \textbf{DP difference} $\sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] $ reaches maximum in $S_m$. Indeed, any set $S$ different from $S_m$ will contain either point-wise indistinguishable values of $s$ and they would reduce the DP difference, or miss point-wise distinguishable values of $s$, which would also reduce the DP difference.   More formally:
 \begin{align*}
 & \sum_{s \in S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] - \sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \\
 = & \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  -  \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \\
+ & \text{Since} \\
  & \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  < 0, \text{ since } \forall s \in S \setminus S_m,   \P[\cR(\xv) = s] < \exp(\epsilon)  \P[\cR(\xv') = s] \\
- & \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  \ge 0, \text{ since } \forall s \in S_m \setminus S,   \P[\cR(\xv) = s] > \exp(\epsilon)  \P[\cR(\xv') = s] \\
+ \& & \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  \ge 0, \text{ since } \forall s \in S_m \setminus S,   \P[\cR(\xv) = s] > \exp(\epsilon)  \P[\cR(\xv') = s] \\
  \text{hence} &  \sum_{s \in S_m \setminus S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s]  -  \sum_{s \in S \setminus S_m} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] > 0
 \end{align*}
 \end{prop}
@@ -147,10 +179,7 @@ Suppose ${\Ssp}$  if finite.  Then the $(\epsilon,\delta)$-\textbf{differentiall
 \sum_{s \in S} \P[\cR(\xv) = s] -  \exp(\epsilon)  \P[\cR(\xv') = s] \le \delta , \forall S \cont \Ssp
 \end{align}
 
-And there exists the maximal $S_m$ containing all and only point-wise distinguishable values of $s$.  $S_m$ maximizes the difference below.
- \[ \P[\cR(\xv) \in S]  - \exp(\epsilon) \cdot \P[\cR(\xv') \in S] \]
- 
-The probability of $s$ being point-wise distinguishable is exactly the probability $P[s \in S_m]$ since it contains just the distinguishable $s$, and hence if  $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private}, then it's also $(\epsilon,\delta)$-\textbf{indistinguishable}.
+And it holds for the maximal set $S_m$ containing all and only point-wise distinguishable values of $s$.  The probability of $s$ being point-wise distinguishable is exactly the probability $P[s \in S_m]$ since it contains just the distinguishable $s$, and hence if  $\cR$ is $(\epsilon,\delta)$-\textbf{differentially private}, then it's also $(\epsilon,\delta)$-\textbf{indistinguishable}.
 
 Now assume $\cR$ is $(\epsilon,\delta)$-\textbf{indistinguishable}, then by definition
 \begin{align*}
@@ -161,9 +190,11 @@ Now assume $\cR$ is $(\epsilon,\delta)$-\textbf{indistinguishable}, then by defi
 \end{align*}
 \end{prop}
 
-\section{Single record shuffling protocol}
+\section{Record shuffling protocol setup}
 
-There are $n$ users, each holding a user value $x_i \in \cX$.  User values form a database of user records a dataset $\bbx = \{x_1,\dots ,x_n\}$. Each user applies a randomization procedure $\cR(x): \map{\cR}{\cX}{\Ssp}$, then submits $\cR(x_i)$ to an anonymizer that shuffles the data and makes it impossible to determine which user submitted a record. We call this algorithm 
+We now prove an important (although intuitive) result applicable to the large class of shuffling algorithms.  The result states that if $n$ records taken from a finite domain are randomized with procedure $\cR$ before shuffling, and the shuffled dataset is $(\epsilon,\delta)$-\textbf{differentially private}, then the exact same procedure guarantees $(\epsilon,\delta)$-\textbf{differential privacy} for $n+1$ records. In short - if randomization noise is enough for $n$ records, it's enough for more than $n$ records.  
+
+Assume there are $n$ users, each holding a user value $x_i \in \cX$.  User values form a dataset $\bbx = \{x_1,\dots ,x_n\}$. Each user applies a randomization procedure $\cR(x): \map{\cR}{\cX}{\Ssp}$, then submits $\cR(x_i)$ to an anonymizer that shuffles the data and makes it impossible to determine which user submitted a record. We call this algorithm 
 \[
 M(x_1,  \dots , x_n) = \pi (\cR(x_1), \dots , \cR(x_n)) \text{ where } \pi \text{ permutes its elements}. 
 \]
@@ -194,7 +225,7 @@ Since $ \Hsp_{n+1}$ if finite, then for every set $H_{n+1} \cont  \Hsp_{n+1}$:
   \right) &  \eqref{eq:hp1}  and  \eqref{eq:hp2} 
 \end{align*}
 
-After rearranging the oder of summation and combining terms with same $ \P[\cR(x) = s_i]$, we have:
+Rearranging the oder of summation and combining terms with same $ \P[\cR(x) = s_i]$, we have:
  \begin{align*}
 & \P[M(\xv \cup x) \in H_{n+1}] - \exp(\epsilon) \cdot \P[M(\xv' \cup x) \in H_{n+1}]  \\
 = & \begin{pmatrix} 
@@ -205,8 +236,8 @@ After rearranging the oder of summation and combining terms with same $ \P[\cR(x
 \end{pmatrix}
  \end{align*}
 Note that each sum of the form  
-\[ \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, \cdots, h_i-1, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1 - 1,  \cdots, h_i-1, \cdots, h_d \}   \right) \]
-is done over histograms of size $n$, and represents a differential privacy difference, which by assumption  \eqref{eq:histdiff} bounded by $\delta$
+\[ \sum_{h \in H_{n+1}}  \left (   \P(M(\xv) = \{h_1, \cdots, h_i-1, \cdots, h_d \}  -  \exp(\epsilon)\P(M(\xv') = \{h_1,  \cdots, h_i-1, \cdots, h_d \}   \right) \]
+is done over histograms of size $n$, and represents a \textbf{differential privacy} difference, which by assumption  \eqref{eq:histdiff} bounded by $\delta$
 \[ \P[M(\xv) \in H_n] - \exp(\epsilon) \cdot \P[M(\xv') \in H_n] \le \delta \]
 
 From here:
@@ -229,7 +260,7 @@ From here:
 \end{prop}
 
 
-\section{Single bit shuffling protocol}
+\section{Single bit flipping and shuffling protocol}
 
 We now consider an important scenario where users report bit values, which they flip and send randomized result to the shuffler. 
 There are $n$ users, each holding a value $x \in \{0,1\}$.  User bits form a dataset $D  \cont \Dsp = \{0,1\}^n$. 
@@ -253,7 +284,7 @@ Equivalently, the algorithm $M$ is differentially private, if it is $(\epsilon,\
 P \left (   e^{-\epsilon} \le \frac{P(M(D \cup 0) = s)}{P(M(D \cup 1) = s)} \le e^{\epsilon} \right ) \ge 1 - \delta, \forall s \in \{0,1,\cdots,n+1\}
 \end{align}
 
-The quantity in parenthesis is referred as  a \textbf{privacy loss ratio} $R$.  For every instance of $D$, one can express the privacy loss ratio for a particular outcome $s$ as:
+The quantity in parenthesis is referred as  a \textbf{privacy loss ratio} $R$.  For every instance of $D$, one can express the privacy loss ratio at a particular outcome $s$ as:
 \begin{equation} \label{eq:1} 
 R(s|D)= \frac{P(M(D \cup 0) = s)}{P(M(D \cup 1) = s)}  = \frac{P(s|D \cup 0) )}{P(s|D \cup 1)} 
 \end{equation}
@@ -275,14 +306,16 @@ Combining two conditioning expressions into the privacy loss ratio one arrives t
 R(s|D)=  \frac{p \cdot P(s | D ) + q \cdot P( s - 1 | D) } {  p  \cdot P(s -1 | D ) + q \cdot P( s  | D)  } = \frac{ p \frac{P(s | D )}{P(s - 1| D )} + q } { p + q \frac{P(s | D )}{P(s - 1| D )} }
 \end{equation}
 
-Let $\rho(s) = \frac{P(s | D )}{P(s - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $s$.  It's related to $R(s)$ as in:
+Let $\rho(s|D) = \frac{P(s | D )}{P(s - 1| D )}$ be a \textbf{probability ratio} between adjacent values of $s$.  It's related to $R(s|D)$ as in:
 \begin{equation} \label{eq:plratio1}
-R(s|D) =  \frac{ p \frac{P(s | D )}{P(s - 1| D )} + q } { p + q \frac{P(s | D )}{P(s - 1| D )} } = \frac{q + p\rho(s)}{p + q\rho(s)}
+R(s|D) =  \frac{ p \frac{P(s | D )}{P(s - 1| D )} + q } { p + q \frac{P(s | D )}{P(s - 1| D )} } = \frac{q + p\rho(s|D)}{p + q\rho(s|D)}
 \end{equation}
+
+\begin{cor}\label{cr:phr}  $R(s)$ is monotonicity increasing/decreasing as $\rho(s)$ increases/decreases.
+\begin{pf}
 Let $g(x) = \frac{q + px}{p + qx}$, the function $g$ is increasing over $x>0$, since
 \[ g'(x) = \frac{p-q}{(p+qx)^2} > 0. \]
-Which gives as an important corollary 
-\begin{cor}\label{cr:phr} Properties of monotonicity and extrema established for $\rho(s)$  carry over to $R(s)$ .
+\end{pf}
 \end{cor}
  
  \begin{lem} \label{lem:rs1}
@@ -301,7 +334,7 @@ The privacy loss ratio $R(s)$ decreases monotonically as $s$ grows, reaching its
 \end{align*}
 \end{pf}
 
-According to corollary \ref{cr:max} there exists a set $S_m$ containing only point-wise distinguishable values of $s$.  Then, by lemma \ref{lem:rs1} such set includes only values from 0 to $k$ for which $R(s) > e^\epsilon$.   This immediately gives us an expression for $(\epsilon,\delta)$-\textbf{differential privacy}  in binary case.
+According to corollary \ref{cr:max} there exists a set $S_m$ containing all and only point-wise distinguishable values of $s$.  Then, by lemma \ref{lem:rs1} such set includes only values from 0 to $k$ for which $R(s) > e^\epsilon$.   This immediately gives us an expression for $(\epsilon,\delta)$-\textbf{differential privacy}  in binary case.
 \begin{lem} \label{lem:dp_bin}
 The algorithm $M$ is $(\epsilon,\delta)$-\textbf{differentially} private if and only if   
 \begin{equation} \label{eq:dp_bin}
@@ -328,7 +361,7 @@ p  P(k | D )  + \sum_{i=0}^{k-1} P(i|D) - e^\epsilon \left ( q  P(k | D )  + \su
 \end{pf}
 \end{lem}
 
-The formula \ref{eq:dp_bin} reveals the very nature of  $(\epsilon,\delta)$-protection for the bit reporting. In essence, it's a difference in PDF and CDF of the underling distribution of $s$.  The left tail probabilities grow as $s$ increases, but so does the cumulative sum of them.  At some point CDF becomes greater than the probability at given $s$, and then all consequent values of $s$ are all pair-wise indistinguishable.  As long as this difference stays under $\delta$, the privacy is preserved.
+The formula \ref{eq:dp_bin} reveals the very nature of  $(\epsilon,\delta)$-privacy for the bit reporting. In essence, it's a difference in PDF and CDF of the underling distribution of $s$.  The left tail probabilities grow as $s$ increases, but so does the cumulative sum of them.  At some point CDF becomes greater than the probability at given $s$, and then all consequent values of $s$ are all pair-wise indistinguishable.  As long as this difference stays under $\delta$, the $(\epsilon,\delta)$ privacy holds.
 
 Despite its simple form, the expression \ref{eq:dp_bin} does not immediately provide a simple way to express $q$ from  $(\epsilon,\delta)$ and the size of the dataset.  A theorem below makes possible to bound $R(s)$ of any distribution of the form  \ref{lem:bpd} with the $R(s)$ of the dataset containing only 0 bits.
 
@@ -341,12 +374,13 @@ Denote a collections of $n$ bits containing $m$ set bits and $n-m$ zero bits as 
 \end{itemize}
 Choose a distance $l$ such that $l \ge npq$, then 
 \[ \rho[\mu_m - l|D_r] \le \rho[\mu_0 - (l+2)|D_0] \]
-That is, the probability ratio for any collection is bound by the probability ratio of the zero collection. \begin{pf}
+That is, the probability ratio for any collection $D_m$ is bound by the probability ratio of the zero collection $D_0$. 
+\begin{pf}
 PROOF Is INVOLVED AND WILL BE GIVEN LATER IN APPENDIX.  Max needs to fix Dave's notations, skipping for now.
 \end{pf}
 \end{prop}
 
-From lemma \eqref{lem:rs3} and proposition \ref{lem:rs3} we immediately receive the corollary below that bounds the left tail of the distribution \ref{lem:bpd}
+From lemma \eqref{lem:rs3} and proposition \ref{lem:rs3} we immediately receive the corollary that bounds the left tail of the distribution \ref{lem:bpd}
 \begin{cor}\label{cor:rs3}
 For left deviations $l \ge npq$ from the mean the privacy loss ratio for the collection of $n$ bits is bounded by the privacy loss ratio for the collection of $n$ zero bits
 \[ R[\mu_m- l|D_m] \le R[\mu_0 - (l+2)|D_0] \]
@@ -355,7 +389,7 @@ For left deviations $l \ge npq$ from the mean the privacy loss ratio for the col
 
 We present the properties of a zero valued dataset below along with derivation of the $(\epsilon,\delta)$-bound for such collection, and a formula  to compute the the flipping frequency $q$. We then apply corollary \ref{cor:rs3} to bound an arbitrary set of bits. 
 
-\subsection{properties of zero valued collection}
+\subsection{properties of a zero valued collection of bits}
 Let $D$ consists of $n$ zero bits, the neighboring dataset $D'$ is achieved by replacing a zero bit with set bit. The outcome of applying the algorithm $M$ is a sum of randomized bits $s$. The following relationships hold.
 
 \begin{align}
@@ -380,7 +414,7 @@ Setting $l=\sqrt{3nq \cdot ln\frac{2}{\delta}}$, one is ensured that values of $
 \begin{align}
   && e^\epsilon \ge R(i) \ge e^{-\epsilon} \\ 
  \implies &&  e^{-\epsilon} \le \frac{1}{R(i)} \le e^\epsilon \\
-  \implies &&  e^{-\epsilon} \le \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \le e^\epsilon
+  \implies &&  e^{-\epsilon} \le \frac{n-i}{n}\frac{q}{p} + \frac{i}{n} \frac{p}{q} \le e^\epsilon \label{eq:dprs1}
 \end{align}
 
 We first bound the left side of the inequality, setting $i = \mu - l$
@@ -411,8 +445,9 @@ i = \mu + l \\
   q \ge  \frac { 3  ln\frac{2}{\delta}} { n \left [ e^{\epsilon} - 1\right ]^2 }  \label{lem:rs202}
 \end{align}
 
+Since $e^{\epsilon} - 1 \ge 1 - e^{-\epsilon}$, if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met.
 
-Since $e^{\epsilon} - 1 \ge 1 - e^{-\epsilon}$, if $q$ bound  \eqref{lem:rs201} is met, then \eqref{lem:rs202} is also met, which leads to the following lemma
+The low bounds are symmetrical to the upper bounds, as immediately follows from \ref{eq:dprs1} bound for the privacy loss ratio.  Hence, the lemma bellow.
 
  \begin{lem} \label{lem:rs203}
 The shuffling algorithm $M$ on a collection of $n$ zero bits is $(\epsilon,\delta)$-\textbf{differentially private} when the flipping frequency $q$ of the randomization procedure $\cR$ satisfy \eqref{lem:rs201}.
@@ -479,7 +514,7 @@ Recall that the right distribution tail is bounded by its moment generating func
   e^{t(1+\alpha)(\mu_m - \mu_0)} \left ( \frac{p+qe^{t} } { q+pe^{t} } \right )^m
 \end{align}
  
- Chernoff right bound is obtained by bounding \ref{eq:cbd} at $t=ln(1+\alpha)$ , at which value the ratio above resolves to
+ Chernoff right bound is obtained by choosing $t=ln(1+\alpha)$ , at which value the ratio above resolves to
   \begin{align*}
  (1+\alpha)e^{(1+\alpha)(\mu_m - \mu_0)} \left ( \frac{p+q(1+\alpha) } { q+p(1+\alpha) } \right )^m & = \\
  (1+\alpha)e^{(1+\alpha)m(p - q)} \left ( \frac{1+q\alpha } { 1+ p\alpha} \right )^m  & = \\
@@ -603,11 +638,11 @@ VAR(\bar{\frac{m}{n}}) = \left [ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e
 \sigma(\bar{\frac{m}{n}}) = \frac{\sqrt{p}}{n(p-q)} \sqrt{ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }} \label{eq:bitdev}
 \end{align}
 
-Most commonly the deviation of a ratio estimate reduces proportional to $\frac{1}{\sqrt{n}}$.  This method allows to drive down deviation proportional to $1/n$, allowing to receive meaningful results even for small number of participants.
+Local DP achieves deviation of a ratio estimate proportional to $\frac{1}{\sqrt{n}}$.  This method allows to drive down deviation proportional to $1/n$.  When $n$ is large, the flipping frequency $q$ is small and the leading term $\frac{\sqrt{p}}{(p-q)}$ approaches 1.  This makes this protocol comparable to central DP, since the measurement error is $O(\frac{1}{n})$ up to a constant factor. 
 
-\subsection{fake records protocol}
+\subsection{Adding fake records to the protocol}
 
-One obvious limitation revealed by \ref{eq:bitdev} is that for low $n$, the flipping frequency computed by \ref{eq:binq} could be high enough to make $\frac{\sqrt{p}}{(p-q)}$ significant.   We can reduce $\frac{\sqrt{p}}{(p-q)}$  to 1 without by letting users report randomized fake records along with their true records.  Suppose $k$ users randomize a fake zero bit and send it to a shuffler along with their randomized true bits.  Then the collection of the original bits contains $m$ set bits and $n+k - m$ zero bits.  The flipping frequency $q$ is computed from:
+One obvious limitation revealed by \ref{eq:bitdev} is that for low $n$, the flipping frequency computed by \ref{eq:binq} could be high enough to make $\frac{\sqrt{p}}{(p-q)}$ significant.   We can reduce $\frac{\sqrt{p}}{(p-q)}$  to 1 without changing privacy settings by letting users report randomized fake bits along with their true bits.  Suppose $k$ users randomize a fake zero bit and send it to a shuffler along with their randomized true bits.  Then the collection of the original bits contains $m$ set bits and $n+k - m$ zero bits.  The flipping frequency $q$ is computed from:
 \[ q = \frac  { 3  ln\frac{2}{\delta}}  { (n+k) \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{(n+k) \left [ 1 - e^{-\epsilon}\right ] } \]
 
 Hence, $q$ can be made arbitrary small by increasing $k$, which in turn reduces $\frac{\sqrt{p}}{(p-q)}$  to 1.   On the other hand, the estimate of $m$ is now:
@@ -623,9 +658,11 @@ The deviation of the estimate is
 = &  \frac{\sqrt{p}}{p-q} \left [ \frac  { 3  ln\frac{2}{\delta}}  {\left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{\left [ 1 - e^{-\epsilon}\right ] }  \right ] \label{eq:bins}
 \end{align}
 
-Choosing $k$ large enough eliminates the leading term  $\frac{\sqrt{p}}{p-q}$, thus reducing deviation without loss of privacy. This is an interesting property of the fake noise, it enables to increase measurement precision for same privacy settings for the expense of sending move volume to the shuffler.  Of corse, adding volume to the mix-net traffic is not free, at at some point adding fake noise becomes infeasible.  However, for small number of users, it provides desired precision increase. This useful property will be exploited in the following sections that present industrial strength shuffling protocol for indicator vectors. 
+Choosing $k$ large enough eliminates the leading term  $\frac{\sqrt{p}}{p-q}$, thus reducing deviation without loss of privacy. This is an interesting property of the fake noise, it enables increase of measurement precision for same privacy settings for the expense of sending more volume to the shuffler.  Of corse, adding volume to the mix-net traffic is not free, and at some point adding fake noise becomes infeasible.  However, for small number of users, it provides desired precision increase. This useful property will be exploited in the following sections that present industrial strength shuffling protocol for indicator vectors.
 
-\section{Clear Reports Protocol}
+\section{indicator vector reporting protocols}
+
+\subsection{Clear Reports Protocol}
 
 We now turn to mix-net model protocols suitable for indicator vectors. The first and the simplest protocol of the kind is when users report their indicator vectors in clear, but some fraction of users also send randomly generated indicator vectors to the shuffler. 
 
@@ -680,14 +717,14 @@ By applying a Chernoff bound, we have a bound (symmetric for the upper and lower
  \Pr \left [ \left | \hat{h}_k - \frac{m}{d} \right | > t \frac{m}{d} \right ]  \le 2 e^{- \frac{m}{d} \frac{t^2}{3}}, \qquad \text{ for  } 0 < t < 1.
 \end{align*}
 
-Choose $t$ to fit the expression below, hence $t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }$.
-%\begin{align}
-%2e^{- \frac{m}{d} \frac{t^2}{3}} = \frac{\delta}{2}  \\
-%- \frac{m}{d} \frac{t^2}{3} = \log{\frac{\delta}{4}}  \\
-% \frac{m}{d} \frac{t^2}{3} = \log{\frac{4}{\delta}} \\
-% t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }
-%\end{align}
-Using this expression for $t$ turns our Chernoff bound into the following,
+Choose $t$ from the expression below
+\begin{align*}
+2e^{- \frac{m}{d} \frac{t^2}{3}} = \frac{\delta}{2}  \\
+- \frac{m}{d} \frac{t^2}{3} = \log{\frac{\delta}{4}}  \\
+ \frac{m}{d} \frac{t^2}{3} = \log{\frac{4}{\delta}} \\
+ t = \sqrt{  \frac{3d}{m} \log{\frac{4}{\delta}} }
+\end{align*}
+Using this expression for $t$ turns our Chernoff bound into,
  
  \begin{align}
  Pr \left [ \left | \bar{h}_k - \frac{m}{d} \right | >  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}} } \right ]  \le \frac{\delta}{2}
@@ -705,16 +742,16 @@ Conditioned on there being the given number of fake records, we can upper bound 
  L(h) =  \log  \left ( \frac{\hat{h}_\ell + 1}{\hat{h}_{\ell'}} \right ) \le \log  \left ( \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} } \right ) \le \epsilon 
 \end{align}
 
-From the above, we then get a condition on the number of fake records, m, to ensure DP.
- \begin{align*}
+From the above, we then get a condition on the number of fake records $m$ to ensure DP.
+ \begin{align}
 & \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^\epsilon  \\
 \implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) - 1 \ge 0 \\
 \implies & \frac{m}{d} (e^\epsilon - 1) -  \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} (e^\epsilon +1) \ge 0 \\
 \implies &\sqrt{  \frac{m}{d}} \left ( \sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1) \right ) \ge 0 \\
 \implies &\sqrt{  \frac{m}{d}} (e^\epsilon - 1)  - \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  \ge 0 \\
 \implies &\sqrt{  \frac{m}{d}}  \ge  \frac { \sqrt{  3 \log{\frac{4}{\delta}}} (e^\epsilon +1)  } { e^\epsilon - 1 } \\
-\implies & \frac{m}{d}  \ge 3\log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2
-\end{align*}
+\implies & \frac{m}{d} \ge 3\log {\frac{4}{\delta}} \left ( \frac{e^\epsilon +1}{e^\epsilon - 1} \right )^2  \label{eq:cfake}
+\end{align}
 
 As for the lower bound of $L(h)$, it's met if the upper bound is met.
  \begin{align*}
@@ -724,13 +761,19 @@ As for the lower bound of $L(h)$, it's met if the upper bound is met.
 \implies &   \frac{  m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}}  { m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1} < \frac{ m/d + \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}} + 1}{  m/d - \sqrt{  \frac{3m}{d} \log{\frac{4}{\delta}}}} \le e^{\epsilon} 
 \end{align*}
 
-An obvious disadvantage of this protocol is its infeasibility for large $d$. If vector dimensions is many thousands, sending millions of fake records through the mix-net becomes prohibitively expensive.  Which problem can be resolved by adding bit flipping to both true and fake records.
+Note that the measurement standard error in any bin is 
+\[  \sigma = \sqrt{\frac{m}{d}(1 - \frac{1}{d})} =  \frac{e^\epsilon +1}{e^\epsilon - 1} \sqrt{  3 \log {\frac{4}{\delta}} (1 - \frac{1}{d})}\] 
+
+It's independent of $m$, and since the term $ 1 - \frac{1}{d}$ approaches 1 as $d$ grows, the deviation becomes also independent of $d$ even for moderate number of dimensions.   For realistic privacy settings and moderate $d$ (within hundreds), the number of fake records ranges in thousands to tens of thousand - a very reasonable cost compared to the volume of modern data surveying involving millions of users.  Which makes this technique a weapon of choice for small to moderate dimensionality. 
+
+
+tAn obvious disadvantage of this protocol is its infeasibility for large $d$. If vector dimensions is many thousands, sending millions of fake records through the mix-net becomes prohibitively expensive.  Which problem can be resolved by adding bit flipping to both true and fake records.
 
 %%%%%%%%%%%%%%%%%%% - but flipping with fake records
 
-\section{Fake records and bit flipping}
+\subsection{Fake records and bit flipping protocol}
 
-We now apply the exact same protocol with a bit flipping twist. Users produce $n$ real and $m$ fake reports, but flips bits of either 1-hot vector frequency $q$ before sending to the shuffler.  More formally, a randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
+We now apply the exact same protocol with a bit flipping twist. Users produce $n$ real and $m$ fake reports, but flip bits of either 1-hot vector with frequency $q$ before sending to the shuffler.  More formally, a randomization procedure $\cR(y)$ flips each bit of an arbitrary 1-hot-vector $y$ with probability $q$ and keeps it the same with probability $p=1-q$.  The resulting mechanism $M_r$ becomes a permutation of randomized true and fake records:
 \[
 M_r(\bbx_1,  \dots , \bbx_n) = \pi (\cR(\bbx_1), \dots , \cR(\bbx_n), \cR(\bbz_1), \dots , \cR(\bbz_m)) \text{ where } \pi \text{ permutes its elements}. 
 \]
@@ -809,7 +852,9 @@ By proposition \ref{lem:bound} an algorithm $M$ that shuffles results of the bit
 \[ q \ge \frac  { 3  ln\frac{2}{\delta}}  { (n+m) \left [ 1 - e^{-\epsilon}\right ] ^2}  + \frac{4}{(n+m) \left [ 1 - e^{-\epsilon}\right ] } \]
 
 Plugging  $(\epsilon, \delta)$ settings needed to satisfy condition \ref{lem:fk102}, one arrives to the  bound of the flipping frequency
-\[ q \ge \frac  { 3  ln\frac{4}{\delta}}  { (n + m) \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{(n + m) \left [ 1 - e^{-\epsilon/2}\right ] } \]
+\begin{equation}
+q \ge \frac  { 3  ln\frac{4}{\delta}}  { (n + m) \left [ 1 - e^{-\epsilon/2}\right ] ^2}  + \frac{4}{(n + m) \left [ 1 - e^{-\epsilon/2}\right ] }  \label{eq:genbound}
+\end{equation}
 \end{pf}
 \end{prop}
 
@@ -836,10 +881,77 @@ In practice, it's the percentage of overall population falling into each bucket 
 
 Expressions \ref{eq:estimate} and \ref{eq:estimate_var} give insight on how the fake noise machinery may help.  If $d >> m$, then the term $\frac{m}{d}(1-1/d)$ becomes negligible, which reduces sensitivity to the single bit case, and the number of fake records is chosen to minimize $\frac{\sqrt{p}}{p-q}$ enough without incurring large communication cost. 
 
+\subsection{protocol improvement for moderate $n$}
+For moderate $n$ we can further improved $q$ bound when the $d >> m$.  Recall that by proposition \ref{prop:nprot} protection for $n$ records is enough to protect any records above $n$.   Assuming that  $d >> m$ and $ \frac{m}{d} \rightarrow 0$, the fake bits in each bin could be assumed all zeros.  Suppose there's only one user record $x_1$, that has a bit set in position 1, and it's replaced with another record $x'_1$ that has a set bit in position 2.   Then $\bbx$ and $\bbx'$ have configuration bellow:
+\begin{align*}
+\begin{matrix}
+\bbx =  \left\{\begin{matrix}
+0 & 0 \\
+0 & 0 \\
+\cdots & \cdots \\
+0 & 0\\
+1 & 0
+\end{matrix}\right.
+&
+\bbx' =  \left\{\begin{matrix}
+0 & 0 \\
+0 & 0 \\
+\cdots & \cdots \\
+0 & 0\\
+0 & 1
+\end{matrix}\right.
+\end{matrix}
+\end{align*}
+
+For that specific setup we can use results for zero-bit collection directly.   Again we are bounding the ratio \ref{lem:fk101}, which could be re-written in terms of the privacy loss ratio $R(s|D_0)$ for the zero bit collection:
+
+\begin{align} \label{lem:fk202}
+& P \left (   e^\epsilon \ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1]  } \cdot \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta  \\
+\implies & P \left (   e^\epsilon \ge R(s_1|D_0)) \cdot R(s_2|D_0) \ge \frac{1}{e^\epsilon} \right ) \le 1 - \delta 
+\end{align}
+
+Recall that the ratio $R(s|D_0)$ is $(\epsilon, \delta)$ bounded on a set of $m$ bits if
+\[  q \ge \frac  { 3  ln\frac{2}{\delta}}  { m\left [ 1 - e^{-\epsilon}\right ] ^2}  \]
+However, the reciprocal $\frac{1}{R(s|D_0)}$ needs less noise
+\[  q \ge \frac  { 3  ln\frac{2}{\delta}}  { m\left [e^{\epsilon} - 1 \right ] ^2}  \]
+
+Which we can exploit this fact to make $q$ bound tighter than \ref{eq:genbound} for small $n$.   Consider two positive numbers $\alpha$ and $\beta$ both chosen from interval $[0,1]$, such that $\alpha + \beta = 1$.  Again we bound the ratio in each dimension separately by letting the following hold:
+\begin{align} \label{lem:fk102}
+& P \left (   e^{\alpha\epsilon}\ge \frac{  Pr[ g_1 | h_1]  } {  Pr[ g_1 | h_1 - 1] }  \ge e^{-\beta\epsilon} \right ) \le 1 - \delta/2 \\
+\& & P \left (  e^{\beta\epsilon}  \ge \frac{  Pr[ g_2 | h_2]  } {  Pr[ g_2 | h_2 + 1]  }  \ge e^{-\alpha\epsilon}  \right ) \le 1 - \delta/2 
+\end{align}
+
+By the union bound, the combined probability of either ratio falling outside its bound is $\delta$, and with probability $1-\delta$, the product of the ratios  bounded in $[ e^{-\epsilon}, e^\epsilon]$ (since $\alpha + \beta = 1$).  Re-writing $q$ bound in each dimension one recieves:
+\begin{align*}
+ & q \ge \frac  { 3  ln\frac{4}{\delta}}  { m\left [ 1 - e^{-\alpha\epsilon}\right ] ^2} \\
+\& & q \ge \frac  { 3  ln\frac{4}{\delta}}  { m\left [e^{\beta\epsilon} - 1 \right ] ^2}
+\end{align*}
+
+Setting $t= \sqrt{\frac{3\ln{\frac{4}{\delta}}}{mq}}$
+\begin{align*}
+ & \frac{1}{t}\ge \frac  {1}  { 1 - e^{-\alpha\epsilon}} \\
+& \frac{1}{t} \ge \frac  {1}  {e^{\beta\epsilon} - 1} \\
+\implies &  \\
+& t \le 1 - e^{-\alpha\epsilon}  \\
+& t \le e^{\beta\epsilon} - 1 \\
+\implies &  \\
+& e^{\alpha\epsilon} \ge \frac{1}{1-t} \\
+&  e^{\beta\epsilon} \ge t + 1 \\
+\implies & e^{\alpha\epsilon} e^{\beta\epsilon} \ge \frac{t+1}{1-t} \\
+\implies & e^\epsilon \ge  \frac{t+1}{1-t} \\
+\implies & t \ge  \frac{e^\epsilon-1}{e^\epsilon+1}
+\end{align*}
+
+Plugging expression for $t$ into the formula above we receive the bound for $q$
+\begin{equation}
+q \ge \frac{3\ln{\frac{4}{\delta}}}{m} \left (  \frac{e^\epsilon + 1}{e^\epsilon - 1} \right)^2 \label{eq:flipfake}
+\end{equation}
+
+
+
 \section{Appendix: Ratios of sums: properties}
 
-Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.
-
+Here we establish some results around bounding and comparing ratios of sums, which will be useful in working with the privacy ratio.  
 
 \begin{lem} \label{lem:rsbound}
 Suppose $a_1,\dots,a_m,b_1,\dots,b_m \in \R$ with $b_i > 0$ all $i$.
@@ -1339,6 +1451,16 @@ Applying \eqref{lem:rsbound} gives bounds of $R(S)$
 \begin{equation} \label{eq:rsbounds}
  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  } R(S|D)=  \frac{p \cdot P(S | D ) + q \cdot P( S - 1 | D) } {  p  \cdot P(S -1 | D ) + q \cdot P( S  | D)  }
 \end{equation}
+
+\section{ignore}
+We study a variety of the shuffling protocols for reporting one-hot vectors from multiple users with respect to privacy, sensitivity and practicality.  From a practical standpoint, the cost of shuffling is not zero. 
+Assuming that the data comes from a universe $\cX = [d]$ of $d$ elements. Each individual $i \in [n]$ of $n$ users has a data element $x_i\in \cX$ . We will write a data entry in bold $\bbx_i \in \{0, 1\}^d $ to be the one-hot vector where $x_i$ is zero in every position except position $\bbx_i \in \cX$ , where it is one. Furthermore, we will denote a dataset $\bbx = \{x_1,\dots ,x_n\}$ to be a collection of all users' one-hot vectors. We consider multiple mix-net protocols for reporting 1-hot vectors.  A simple one would require each user to donate his data $\bbx_i$ in clear, but, in addition, inject some fake reports $z_j\in \cX$ for $j \in [m]$, and corresponding one-hot vector notation $\bbz_j$, where each data entry is chosen uniformly at random from $\cX$. We then pass $\{\bbx_i : i \in [n]\}$ and $\{\bbz_j : j \in [m]\} $ to an anonymizer that shuffles the data and makes it impossible to determine whether a data record is real or fake.  We call it the "clear-fake records" protocol and show that it provides adequate protection with the cost proportional to $[d]$. Hence if dimensions are not large then the "clear-fake records" protocol is preferred for its simplicity. 
+
+When $[d]$ is significant, the cost of sending and shuffling many fake records becomes prohibitive. Another protocol is developed,  which parameters are independent of $[d]$.  It's called a "fake and flip" protocol, whereby  a user still generates true and fake one-hot report vectors that are both randomized by bit flipping before being sent to the shuffler.  This enables adequate protection at reasonable cost. Depending on the data collection setting, various flavors of the "fake and flip" protocol are discussed.
+
+In discussing mathematical properties of the protocols involving randomization we will rely upon results received for a single dimension bit reporting.  Which results we provide in the first sections, along with some theoretical result claiming that if a randomization algorithm  $\cR$ is $(\epsilon, \delta)$-private on a dataset of $n$ elements, it's also  $(\epsilon, \delta)$-private on a dataset of $n+1$ elements, that is adding more elements to the shuffled set does not reduce privacy. These results are, then, used to develop bounds for each protocol.
+
+
 
 \end{document}
 
